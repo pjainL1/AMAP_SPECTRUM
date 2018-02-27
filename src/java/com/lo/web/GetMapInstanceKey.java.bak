@@ -1,0 +1,133 @@
+package com.lo.web;
+
+import com.korem.openlayers.parameters.IInitParameters;
+import com.korem.requestHelpers.GenericJSONServlet;
+import com.lo.ContextParams;
+import com.lo.db.dao.AirMilesDAO;
+import com.lo.db.dao.SponsorDAO;
+import com.lo.db.om.SponsorGroup;
+import com.lo.util.InitialDatePickers;
+import com.spinn3r.log5j.Logger;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import javax.servlet.http.HttpServletRequest;
+import net.sf.json.util.JSONStringer;
+
+/**
+ *
+ * @author jduchesne
+ */
+public class GetMapInstanceKey extends GenericJSONServlet<GetMapInstanceKey.Params> {
+    private static final Logger LOGGER = Logger.getLogger();
+    
+    public interface Params {
+        String sponsor();
+    }
+
+    @Override
+    protected String getJSON(final HttpServletRequest req, Params params) throws Exception {
+        ContextParams cp = ContextParams.get(req.getSession());
+        IInitParameters initParams = createInitParams(req, new InitialDatePickers(cp.getSponsor()), cp.getSponsor());
+        initLogo(initParams, cp.getSponsor());
+        InitAction.initMap(initParams);
+        return new JSONStringer().object().
+                key("mapInstanceKey").value(initParams.mapInstanceKey()).
+                endObject().toString();
+    }
+    
+    public static String getMapInstanceKey(String sponsorName) {
+        try {
+            SponsorGroup sponsor = getSponsor(sponsorName);
+            IInitParameters initParams = createInitParams(null, new InitialDatePickers(sponsor), sponsor);
+            InitAction.initMap(initParams);
+            
+            return initParams.mapInstanceKey();
+        } catch (Exception e) {
+            LOGGER.error("Error getting mapInstanceKey", e);
+        }
+        
+        return null;
+    }
+    
+    private static SponsorGroup getSponsor(String sponsorName) throws SQLException {
+        SponsorDAO sdao = new SponsorDAO(new AirMilesDAO());
+        return sdao.getSponsor(sponsorName);
+    }
+    
+    private void initLogo(IInitParameters initParams, SponsorGroup selectedSponsor){
+        try {
+            if (selectedSponsor.getLogo().length() != 0){
+                selectedSponsor.setLogoURL(initParams.baseUrl() + "console/getCustomerLogo.safe/" + selectedSponsor.getRollupGroupCode());
+            }
+        } catch (SQLException ex) {
+            LOGGER.error("Can't get logo URL", ex);
+        }     
+    }
+
+    private static IInitParameters createInitParams(final HttpServletRequest req,
+            final InitialDatePickers initDatePickers, final SponsorGroup selectedSponsor) throws SQLException {
+        
+        return new IInitParameters() {
+
+            private String mapInstanceKey;
+            
+            @Override
+            public String workspaceKey() {
+                if (selectedSponsor != null) {
+                    return selectedSponsor.getWorkspaceKey();
+                }
+                return ContextParams.get(req.getSession()).getSponsor().getWorkspaceKey();
+            }
+
+            @Override
+            public void setMapInstanceKey(String mapInstanceKey) {
+                this.mapInstanceKey = mapInstanceKey;
+            }
+
+            @Override
+            public String mapInstanceKey() {
+                return mapInstanceKey;
+            }
+
+            @Override
+            public List<String> sponsorCodes() {
+                if (selectedSponsor != null) {
+                    return selectedSponsor.getCodes();
+                }
+                return ContextParams.get(req.getSession()).getSponsor().getCodes();
+            }
+                
+            @Override
+            public Date from() {
+                return initDatePickers.getInitialFromDate();
+            }
+
+            @Override
+            public Date to() {
+                return initDatePickers.getInitialToDate();
+            }
+            
+            @Override
+            public String baseUrl(){
+                return req.getScheme()+"://"+req.getHeader("HOST")+req.getContextPath()+"/"; 
+            }
+
+            @Override
+            public String logo() {
+                try {
+                    if (selectedSponsor.getLogo().length() != 0){
+                        return selectedSponsor.getLogoURL(); 
+                    }else {
+                        return null;
+                    }
+                } catch (SQLException ex) {
+                    java.util.logging.Logger.getLogger(GetMapInstanceKey.class.getName()).log(Level.SEVERE, null, ex);
+                    return null;
+                }             
+            }
+           
+        };
+    }
+}

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="LoyaltyOne" default="default" basedir=".">
+    <description>Builds, tests, and runs the project K10077.</description>
+    <import file="nbproject/build-impl.xml"/>
+    
+    <property name="libraryPath" value="L:/dev/lib"/>
+    <property name="appsPath" value="\\korem\install\Apps"/>
+    <property environment="env" />
+
+<!--    <property name="do.compile.jsps" value="true" />-->
+    <target name="-post-compile">
+        <!--echo message="+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" />
+        <echo message="     Do not forget to install custom query builder onto your KMS installation" />
+        <echo message="     Paste class from build dir in KMS dir WEB-INF\classes\com\korem\map\loader directory" />
+        <echo message="+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" /-->
+    </target>
+    
+    <target name="_Create_Config_Interfaces" description="create config interface">
+        <java classname="com.korem.config.ConfigManager" fork="yes">
+            <arg value="com.lo.config"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\build.properties"/>
+            
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\com\lo\config\config.properties"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\com\lo\config\staticConfig.properties"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\com\lo\config\mapStyles.properties"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\com\lo\config\queries.properties"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\com\lo\hotspot\hotspot.properties"/>
+            
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\com\lo\config\consoleConfig.properties"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\src\java\com\lo\config\consoleQueries.properties"/>
+            <classpath>
+                <pathelement path="d:\dev\dev_svn\client\loyaltyone\amap\trunk\build\web\WEB-INF\classes"/>
+                <fileset dir="D:\dev\dev_svn\client\loyaltyone\amap\trunk\build\web\WEB-INF\lib">
+                    <include name="**/*.jar"/>
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="_Create_Test_Config_Interfaces" description="create config interface">
+        <java classname="com.korem.config.ConfigManager" fork="yes">
+            <arg value="com.korem.amap.tests.config"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\test"/>
+            <arg value="D:\dev\dev_svn\client\loyaltyone\amap\trunk\test\testConfig.properties"/>
+            <classpath>
+                <pathelement path="d:\dev\dev_svn\client\loyaltyone\amap\trunk\build\web\WEB-INF\classes"/>
+                <fileset dir="D:\dev\dev_svn\client\loyaltyone\amap\trunk\build\web\WEB-INF\lib">
+                    <include name="**/*.jar"/>
+                </fileset>
+            </classpath>
+        </java>
+    </target>
+    
+    <target name="_import test library" description="import">
+        <copy todir="web/WEB-INF/lib" verbose="true" overwrite="true">
+            <fileset dir="${libraryPath}/java/httpcomponents-client-4.2.5/lib">
+                <include name="httpclient-4.2.5.jar"/>
+                <include name="httpcore-4.2.4.jar"/>
+            </fileset>
+        </copy>
+    </target>
+        
+    <target name="__import lib" description="import dependencies">
+        
+        <!-- JAVA LIB -->
+        <copy todir="web/WEB-INF/lib" flatten="true" verbose="true">
+            
+<!--            <fileset dir="${libraryPath}" id="slf4j">
+                <include name="java/slf4j-1.7.4/log4j-over-slf4j-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-api-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-ext-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-jcl-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-jdk14-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-log4j12-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-migrator-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-nop-1.7.4.jar"/>
+                <include name="java/slf4j-1.7.4/slf4j-simple-1.7.4.jar"/>
+                <include name="jdbc/log4jdbc/log4jdbc4-1.2.jar"/>
+            </fileset>-->
+
+            <fileset dir="${libraryPath}/java" id="json">
+                <include name="commons-collections-3.1/commons-collections-3.1.jar" />
+                <include name="commons-lang-2.3/commons-lang-2.3.jar" />
+                <include name="commons-beanutils-1.7.0/commons-beanutils.jar" />
+                <include name="json-lib-2.4/ezmorph-1.0.6.jar" />
+                <include name="json-lib-2.4/json-lib-2.4-jdk15.jar" />
+            </fileset>
+            
+            <!-- STRUTS -->
+            <fileset dir="${libraryPath}/java" id="struts 1.2.9">
+                <include name="struts-1.2.9-bin/lib/antlr.jar"/>
+                <include name="struts-1.2.9-bin/lib/commons-beanutils.jar"/>
+                <include name="struts-1.2.9-bin/lib/commons-digester.jar"/>
+                <include name="struts-1.2.9-bin/lib/commons-logging.jar"/>
+                <include name="struts-1.2.9-bin/lib/commons-validator.jar"/>
+                <include name="struts-1.2.9-bin/lib/jakarta-oro.jar"/>
+                <include name="struts-1.2.9-bin/lib/struts.jar"/>
+            </fileset>
+
+            <fileset dir="${libraryPath}/java/MapXtreme-4.8.2/lib" id="mapxtreme jdom micsys miutil">
+                <include name="common/jdom.jar"/>
+                <include name="common/micsys.jar"/>
+                <include name="common/miutil.jar"/>
+            </fileset>
+
+            <fileset dir="${libraryPath}/java/jstl 1.1" id="standard jstl">
+                <include name="standard.jar"/>
+                <include name="jstl.jar"/>
+            </fileset>
+
+            <!-- WS -->
+            <fileset file="${libraryPath}/java/axis-bin-1_4/axis-1_4/lib/axis.jar" />
+            <fileset file="${libraryPath}/java/axis-bin-1_4/axis-1_4/lib/saaj.jar" />
+            <fileset file="${libraryPath}/java/axis-bin-1_4/axis-1_4/lib/commons-discovery-0.2.jar" />
+            <fileset file="${libraryPath}/java/axis-bin-1_4/axis-1_4/lib/jaxrpc.jar" />
+            <fileset file="${libraryPath}/java/axis-bin-1_4/axis-1_4/lib/wsdl4j-1.5.1.jar" />
+            <fileset file="${libraryPath}/java/dom4j/dom4j.jar" />
+
+            <!-- PDF -->
+            <fileset file="${libraryPath}\java\iText\iText-2.1.7.jar" />
+
+            <!-- JTS -->
+            <fileset file="${libraryPath}\java\jts-1.13\lib\jts-1.13.jar" />
+            <fileset file="${libraryPath}\java\jts-1.13\lib\jtsio-1.13.jar" />
+
+            <!-- UTILS -->
+            <fileset file="${libraryPath}\java\commons-dbutils-1.5\commons-dbutils-1.5.jar" />
+            <fileset file="${libraryPath}\java\log4j\log4j\1.2.17\log4j-1.2.17.jar" />
+            <fileset file="${libraryPath}\java\log5j-1.2\log5j-1.2.jar" />
+            <fileset file="${libraryPath}\java\commons-io-2.4\commons-io-2.4.jar" />
+            <fileset file="${libraryPath}\java\commons-codec-1.7\commons-codec-1.7.jar" />
+            <fileset file="${libraryPath}\java\commons-fileupload-1.2.2/lib/commons-fileupload-1.2.2.jar" />
+
+            <!-- CSV -->
+            <fileset file="${libraryPath}\java\opencsv\opencsv-2.3.jar" />
+
+            <!-- EMAIL -->
+            <fileset file="${libraryPath}\java\javamail-1.4.4\lib\mailapi.jar"/>
+            <fileset file="${libraryPath}\java\javamail-1.4.4\lib\smtp.jar"/>
+            <fileset file="${libraryPath}\java\activation.jar"/>
+            
+            <!-- Spectrum 9 WS -->
+            <fileset file="${libraryPath}\java\pbbi\Spectrum9\soap\GetTravelBoundary.jar" />
+            
+            <!-- KMS WS -->
+            <fileset file="${libraryPath}/java/korem/kms-ws/kms-ws-client_ext_2012-9837.jar" />
+            <!--<fileset file="${libraryPath}/java/korem/loyaltyone/lone-kms-ws-client_ext_3.1b4.jar" />-->
+            <fileset file="${libraryPath}/java/korem/loyaltyone/lone-kms-ws-client_ext_3.2b1.jar" />
+            
+            <!-- KMS -->
+            <fileset file="${libraryPath}/java/korem/pushnsee/pushnsee-2014b7.jar" />
+            
+            <!-- ESAPI -->
+            <fileset file="${libraryPath}/java/ESAPI-1.4.5a/ESAPI-1.4.5a.jar" />
+        </copy>
+
+        <copy todir="web/WEB-INF/ext-lib" flatten="true" verbose="true">
+            <fileset file="${libraryPath}\jdbc\ORACLE JDBC 10.2.0.4.0\ojdbc14.jar" />
+
+            <fileset dir="${libraryPath}/java/apache-tomcat-6.0.26/lib" id="apache-tomcat-dbcp">
+                <include name="tomcat-dbcp.jar"/>
+                <include name="jsp-api.jar"/>
+                <include name="servlet-api.jar"/>
+            </fileset>
+
+            <!-- MXJ 4.8.2 -->
+            <fileset dir="${libraryPath}/java/MapXtreme-4.8.2/lib" id="mxtj run time libraries">
+                <include name="client/mxjloc.jar"/>
+                <include name="client/mxjmanager.jar"/>
+                <include name="client/rjsclient.jar"/>
+                <include name="client/rjscommon.jar"/>
+                <include name="common/clibwrapper_jiio.jar"/>
+                <include name="common/concurrent.jar"/>
+                <include name="common/GexSdk.jar"/>
+                <include name="common/jai_codec.jar"/>
+                <include name="common/jai_core.jar"/>
+                <include name="common/jai_imageio.jar"/>
+                <include name="common/jdom.jar"/>
+                <include name="common/log4j.jar"/>
+                <include name="common/micsys.jar"/>
+                <include name="common/midtds.jar"/>
+                <include name="common/mifonts.jar"/>
+                <include name="common/mijts.jar"/>
+                <include name="common/mistyles.jar"/>
+                <include name="common/miutil.jar"/>
+                <include name="common/mlibwrapper_jai.jar"/>
+                <include name="common/mxj.jar"/>
+                <include name="common/mxjdb2dp.jar"/>
+                <include name="common/mxjdb2sedp.jar"/>
+                <include name="common/mxjdtds.jar"/>
+                <include name="common/mxjgeom.jar"/>
+                <include name="common/mxjgexdp.jar"/>
+                <include name="common/mxjgexdpadd.jar"/>
+                <include name="common/mxjiusdp.jar"/>
+                <include name="common/mxjoradp.jar"/>
+                <include name="common/mxjotherdp.jar"/>
+                <include name="common/mxjrasterdp.jar"/>
+                <include name="common/mxjsqlsvrdp.jar"/>
+                <include name="common/mxjtabdp.jar"/>
+                <include name="common/mxjwmsdpadd.jar"/>
+                <include name="common/mxjwmsdpenv.jar"/>
+                <include name="common/xercesImpl.jar"/>
+                <include name="common/xml-apis.jar"/>
+                <include name="common/xmlParserAPIs.jar"/>
+                <include name="server/mxjserver.jar"/>
+            </fileset>
+
+            <!-- MXJ PATCH UP TO 4.8.2.10 -->
+            <fileset dir="${libraryPath}/java/MapXtreme Java 4.8.2.10 patch" id="mxtj 4.8.2.10 patch">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+    
+    <target name="test_server" depends="compile-test">
+        <taskdef resource="testngtasks" classpath="${libraryPath}/java/testNG/testng-6.8/testng-6.8.jar"/>
+        <testng classpath="build/web/WEB-INF/lib/*;build/web/WEB-INF/classes;build/test/classes;${libraryPath}/java/testNG/testng-6.8/testng-6.8.jar"
+            outputdir="test-output">
+            <sysproperty key="testConfigPath" value="/appl/KOREM/jenkins/loyalty/testConfig.properties"/>
+            <classfileset dir="build/test/classes" includes="com/korem/amap/tests/app/*.class"/>
+            <classfileset dir="build/test/classes" includes="com/korem/amap/tests/console/*.class"/>
+        </testng>
+    </target>
+    
+    <target name="test_dev" depends="compile-test">
+        <taskdef resource="testngtasks" classpath="${libraryPath}/java/testNG/testng-6.8/testng-6.8.jar"/>
+        <testng classpath="build/web/WEB-INF/lib/*;build/web/WEB-INF/classes;build/test/classes;${libraryPath}/java/testNG/testng-6.8/testng-6.8.jar"
+            outputdir="test-output">
+            <sysproperty key="testConfigPath" value="d:/dev/dev_svn/client/loyaltyone/amap/trunk/test/testConfig.properties"/>
+            <classfileset dir="build/test/classes" includes="com/korem/amap/tests/app/*.class"/>
+            <classfileset dir="build/test/classes" includes="com/korem/amap/tests/console/*.class"/>
+        </testng>
+    </target>
+    
+    <target name="jenkins" depends="clean,__import lib,_import JS libs,_import test library,updateBuildNumber,dist"></target>
+
+    <target name="_import JS libs" description="import JS libraries">
+        <!--Import Extjs-->
+        <copy todir="web/js/lib/ext4" flatten="true">
+            <fileset dir="${libraryPath}/javascript/extJS/ext-4.2.1.883">
+                <include name="ext-all-debug.js"/>
+                <include name="ext-debug.js"/>
+                <include name="ext.js"/>
+                <include name="ext-all.js"/>
+            </fileset>
+        </copy>
+ 
+        <copy todir="web/js/lib/ext4/resources">
+            <fileset dir="${libraryPath}/javascript/extJS/ext-4.2.1.883/resources">
+            </fileset>
+        </copy>
+        
+        <copy todir="web/js/lib/ext4/ux">
+            <fileset dir="${libraryPath}/javascript/extJS/ext-4.2.1.883/examples/ux">
+            </fileset>
+        </copy>
+    </target>
+    <target name="deploy" description="Install web application" depends="compile">
+        <deploy url="http://stmeng10:8080/manager" username="admin" password="admin"
+                path="${ant-path}" war="file:${ant-build}${ant-path}.war"/>
+    </target>
+    
+    <target name="updateBuildNumber">
+        <propertyfile file="src/java/build.properties">
+            <entry key="svn.revision" value="${env.SVN_REVISION}" />
+        </propertyfile>
+    </target>
+
+</project>

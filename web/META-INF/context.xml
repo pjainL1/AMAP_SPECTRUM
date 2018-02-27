@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context antiJARLocking="false" antiResourceLocking="false" path="/Users/pjain/NetBeansNew/ammapphase3upgrade">
+  <Environment description="Google Maps API Premier key" name="google.maps.client" type="java.lang.String" value="gme-gebkoreminc"/>
+  <Environment description="Google Maps API Premier key" name="google.maps.signature" type="java.lang.String" value="gNUn7nKL6-gWawDIeiKg41WSOsY="/>
+  <Environment description="A-Map env" name="amap_env" type="java.lang.String" value="dev"/>
+  <Environment description="A-Map env BASE URL" name="amap/baseURL" type="java.lang.String" value="http://localhost:8080/analytics/"/>
+  <!-- KMS SERVER -->
+  <!--  <Environment description="KMS server url" name="kms/url" type="java.lang.String" value="http://sqamap02.korem.local:8180/kms"/>-->
+  <!--  <Environment description="KMS server url" name="kms/url" type="java.lang.String" value="http://stmeng10:22080/kms"/>-->
+  <Environment description="KMS server url" name="kms/url" type="java.lang.String" value="http://localhost:8080/KMS2012"/>
+  <!--Environment description="KMS server url" name="kms/url" type="java.lang.String" value="https://loyaltyone.korem.com/kms"/-->
+  <Environment description="is this instance running the file uploader" name="loadFile" type="java.lang.Boolean" value="false"/>
+  <!-- SPECTRUM -->
+  <Environment description="spectrum url" name="spectrum/url" type="java.lang.String" value="https://staging.spectrum.pitneybowes.com/soap/"/>
+  <Environment description="spectrum username" name="spectrum/username" type="java.lang.String" value="Korem8778"/>
+  <Environment description="spectrum password" name="spectrum/password" type="java.lang.String" value="$1555#JH%"/>
+  <!-- MAIL -->
+  <Environment description="email server" name="emailHost" type="java.lang.String" value="relay.business.allstream.net"/>
+  <Environment description="email server port, default to 25 if unspecified" name="emailPort" type="java.lang.String" value="25"/>
+  <!--Environment description="optional email user" name="emailUser" type="java.lang.String" value="korem.unifiedemail.com" /-->
+  <!--Environment description="optional email password" name="emailPass" type="java.lang.String" value="korem.unifiedemail.com" /-->
+  <!-- MIPOOL -->
+  <Environment description="mipool set in KMS db connexions" name="mipool" type="java.lang.String" value="tmbr"/>
+  <!--  <Environment description="mipool set in KMS db connexions" name="mipool" type="java.lang.String" value="mlcc"/>-->
+  <!-- pooled datasource -->
+  <Resource accessToUnderlyingConnectionAllowed="true" auth="Container" connectionProperties="defaultRowPrefetch=500" driverClassName="oracle.jdbc.driver.OracleDriver" logAbandoned="true" maxActive="10" maxIdle="10" maxOpenPreparedStatements="10" maxWait="240000" name="lone" password="lone" poolPreparedStatements="true" removeAbandoned="true" removeAbandonedTimeout="30" testOnBorrow="true" type="javax.sql.DataSource" url="jdbc:oracle:thin:@sqamap02:1521:amap" username="lone" validationQuery="select 1 from dual"/>
+  <Resource accessToUnderlyingConnectionAllowed="true" auth="Container" connectionProperties="defaultRowPrefetch=500" driverClassName="oracle.jdbc.driver.OracleDriver" logAbandoned="true" maxActive="10" maxIdle="10" maxOpenPreparedStatements="10" maxWait="240000" name="met1" password="metro" poolPreparedStatements="true" removeAbandoned="true" removeAbandonedTimeout="30" testOnBorrow="true" type="javax.sql.DataSource" url="jdbc:oracle:thin:@sqamap02:1521:amap" username="metro" validationQuery="select 1 from dual"/>
+  <Resource accessToUnderlyingConnectionAllowed="true" auth="Container" connectionProperties="defaultRowPrefetch=500" driverClassName="oracle.jdbc.driver.OracleDriver" logAbandoned="true" maxActive="10" maxIdle="10" maxOpenPreparedStatements="10" maxWait="240000" name="mlcc" password="mlcc" poolPreparedStatements="true" removeAbandoned="true" removeAbandonedTimeout="30" testOnBorrow="true" type="javax.sql.DataSource" url="jdbc:oracle:thin:@sqamap02:1521:amap" username="mlcc" validationQuery="select 1 from dual"/>
+  <Resource accessToUnderlyingConnectionAllowed="true" auth="Container" connectionProperties="defaultRowPrefetch=500" driverClassName="oracle.jdbc.driver.OracleDriver" logAbandoned="true" maxActive="10" maxIdle="10" maxOpenPreparedStatements="10" maxWait="240000" name="nslc" password="nslc" poolPreparedStatements="true" removeAbandoned="true" removeAbandonedTimeout="30" testOnBorrow="true" type="javax.sql.DataSource" url="jdbc:oracle:thin:@sqamap02:1521:amap" username="nslc" validationQuery="select 1 from dual"/>
+  <Resource accessToUnderlyingConnectionAllowed="true" auth="Container" connectionProperties="defaultRowPrefetch=500" driverClassName="oracle.jdbc.driver.OracleDriver" logAbandoned="true" maxActive="10" maxIdle="10" maxOpenPreparedStatements="10" maxWait="240000" name="tmbr" password="timber" poolPreparedStatements="true" removeAbandoned="true" removeAbandonedTimeout="30" testOnBorrow="true" type="javax.sql.DataSource" url="jdbc:oracle:thin:@sqamap02:1521:amap" username="timber" validationQuery="select 1 from dual"/>
+  <Environment description="config file" name="config.Config" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\com\lo\config\config.properties"/>
+  <Environment description="hotspot queries file" name="config.Hotspot" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\com\lo\hotspot\hotspot.properties"/>
+  <Environment description="static config file" name="config.StaticConfig" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\com\lo\config\staticConfig.properties"/>
+  <Environment description="map styles config file" name="config.MapStyles" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\com\lo\config\mapStyles.properties"/>
+  <Environment description="console config file" name="config.ConsoleConfig" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\com\lo\config\consoleConfig.properties"/>
+  <Environment description="queries file" name="config.Queries" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\com\lo\config\queries.properties"/>
+  <Environment description="console queries file" name="config.ConsoleQueries" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\com\lo\config\consoleQueries.properties"/>
+  <Environment description="build file" name="config.Build" type="java.lang.String" value="C:\netbeans-korem\amap_source\src\java\build.properties"/>
+  <Environment description="config interval" name="configMonitoringInterval" type="java.lang.Long" value="1000"/>
+</Context>

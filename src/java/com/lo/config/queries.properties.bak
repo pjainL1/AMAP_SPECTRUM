@@ -1,0 +1,263 @@
+loading.grant.groupedCollectorSums=GRANT SELECT ON LONE.GROUPED_COLLECTOR_SUMS TO %s
+loading.grant.collectorActive=GRANT SELECT ON LONE.COLLECTOR_ACTIVE TO %s
+
+filters.sponsorKeys=sponsor_key in (%s)
+filters.sponsorCodes=sponsor_code in (%s)
+
+postalCodes.distance.select=SELECT SL.SPONSOR_LOCATION_CODE, PC.POSTAL_CODE, \
+sdo_geom.sdo_distance(get_point(SL.longitude, SL.latitude), get_point(PC.POSTAL_CODE_CENTROID_LONGITUDE, PC.POSTAL_CODE_CENTROID_LATITUDE), 0.05, 'unit=KM') AS DISTANCE \
+FROM SPONSOR_LOCATION SL, LONE.POSTAL_CODE PC WHERE SL.SPONSOR_LOCATION_KEY = ? AND \
+MDSYS.SDO_ANYINTERACT(GET_POINT(PC.POSTAL_CODE_CENTROID_LONGITUDE,PC.POSTAL_CODE_CENTROID_LATITUDE),SDO_UTIL.RECTIFY_GEOMETRY(?, 0.05)) = 'TRUE'
+postalCodes.only.select=SELECT DISTINCT PC.POSTAL_CODE FROM LONE.POSTAL_CODE PC WHERE \
+MDSYS.SDO_ANYINTERACT(GET_POINT(PC.POSTAL_CODE_CENTROID_LONGITUDE,PC.POSTAL_CODE_CENTROID_LATITUDE),SDO_UTIL.RECTIFY_GEOMETRY(?, 0.05)) = 'TRUE'
+postalCodesAndDistanceForProjectedLocations =  SELECT PC.POSTAL_CODE, sdo_geom.sdo_distance(get_point(?, ?), get_point(PC.POSTAL_CODE_CENTROID_LONGITUDE, PC.POSTAL_CODE_CENTROID_LATITUDE), 0.05, 'unit=KM') AS DISTANCE FROM LONE.POSTAL_CODE PC WHERE   MDSYS.SDO_ANYINTERACT(GET_POINT(PC.POSTAL_CODE_CENTROID_LONGITUDE,PC.POSTAL_CODE_CENTROID_LATITUDE),SDO_UTIL.RECTIFY_GEOMETRY(?, 0.05)) = 'TRUE'
+postalCodes.houseHolds.select=SELECT SUM(PC.TOTAL_NUM_HHLDS) AS TOTALHH FROM LONE.POSTAL_CODE PC WHERE MDSYS.SDO_ANYINTERACT(GET_POINT(PC.POSTAL_CODE_CENTROID_LONGITUDE,PC.POSTAL_CODE_CENTROID_LATITUDE),SDO_UTIL.RECTIFY_GEOMETRY(?, 0.05)) = 'TRUE'
+
+layerGroup.select.all.layer=SELECT * FROM LONE.LAYER WHERE AMAP_ROLLUP_GROUP_CODE = ?
+layerGroup.delete.in.layer=DELETE FROM LONE.LAYER WHERE AMAP_ROLLUP_GROUP_CODE = ? AND NAME IN (%s)
+layerGroup.delete.all.layer=DELETE FROM LONE.LAYER WHERE AMAP_ROLLUP_GROUP_CODE = ?
+layerGroup.insert.layer=INSERT INTO LONE.LAYER("GROUP_ID", "AMAP_ROLLUP_GROUP_CODE", "NAME", "LAYER_ORDER") VALUES \
+ ((SELECT id FROM LONE.LAYER_GROUP WHERE AMAP_ROLLUP_GROUP_CODE = ? AND IS_OTHER='Y'), ?, ?, \
+ (SELECT COUNT(*) FROM LONE.LAYER WHERE GROUP_ID=(SELECT id FROM LONE.LAYER_GROUP WHERE AMAP_ROLLUP_GROUP_CODE = ? AND IS_OTHER='Y')))
+layerGroup.select.all.layer.group=SELECT * FROM LONE.LAYER_GROUP WHERE AMAP_ROLLUP_GROUP_CODE = ?
+layerGroup.update.layer.group=UPDATE LONE.LAYER_GROUP SET NAME = ? WHERE AMAP_ROLLUP_GROUP_CODE = ? AND NAME = ?
+layerGroup.insert.layer.group=INSERT INTO LONE.LAYER_GROUP("ID", "AMAP_ROLLUP_GROUP_CODE", "NAME", "IS_OTHER", "GROUP_ORDER") VALUES \
+ ((LONE.LAYER_GROUP_SEQ.NEXTVAL), ?, ?, ?, (SELECT COUNT(*) FROM LONE.LAYER_GROUP WHERE AMAP_ROLLUP_GROUP_CODE = ?))
+layerGroup.insert.layer.group.other=INSERT INTO LONE.LAYER_GROUP("ID", "AMAP_ROLLUP_GROUP_CODE", "NAME", "IS_OTHER", "GROUP_ORDER") \
+ VALUES ((LONE.LAYER_GROUP_SEQ.NEXTVAL), ?, 'Other', 'Y', 9999999999)
+layerGroup.check.other.exist=SELECT COUNT(*) FROM LONE.LAYER_GROUP WHERE AMAP_ROLLUP_GROUP_CODE = ? AND IS_OTHER = 'Y'
+layerGroup.delete.layer.group.by.id=DELETE FROM LONE.LAYER_GROUP WHERE ID = ? AND IS_OTHER = 'N'
+layerGroup.select.all=SELECT LG.AMAP_ROLLUP_GROUP_CODE AS AMAP_ROLLUP_GROUP_CODE, LG.ID AS ID, LG.IS_OTHER AS IS_GROUP_OTHER, LG.NAME AS GROUP_NAME, \
+ LG.GROUP_ORDER AS GROUP_ORDER, L.NAME AS LAYER_NAME, L.LAYER_ORDER AS LAYER_ORDER \
+ FROM LONE.LAYER_GROUP LG \
+ LEFT JOIN LONE.LAYER L ON LG.ID = L.GROUP_ID \
+ WHERE LG.AMAP_ROLLUP_GROUP_CODE = ? ORDER BY LG.GROUP_ORDER, L.LAYER_ORDER
+layerGroup.update.layer.to.other=UPDATE LONE.LAYER SET GROUP_ID = \
+ (SELECT ID FROM LONE.LAYER_GROUP WHERE IS_OTHER = 'Y' AND AMAP_ROLLUP_GROUP_CODE = (SELECT AMAP_ROLLUP_GROUP_CODE FROM LONE.LAYER_GROUP WHERE ID = ?)) \
+ WHERE GROUP_ID = ?
+layerGroup.rename.layer.group=UPDATE LONE.LAYER_GROUP SET NAME = ? WHERE ID = ?
+layerGroup.update.layer.group.order=UPDATE LONE.LAYER_GROUP SET GROUP_ORDER = ? WHERE ID = ? AND IS_OTHER = 'N'
+layerGroup.update.layer.order=UPDATE LONE.LAYER SET LAYER_ORDER = ?, GROUP_ID = ? WHERE GROUP_ID = ? AND AMAP_ROLLUP_GROUP_CODE = ? AND NAME = ?
+
+loading.count=SELECT COUNT(*) FROM %s
+
+# trade area augmenter queries
+info.tradeArea.selectOnTransactions=select /*+ index(u UNIVERSE_INFO_IDX)*/ u.sponsor_location as Location, s.sponsor_code as Code, u.collector_key as Collector, u.distance, u.actual_distance, sum(u.spend) spend, sum(u.unit) unit, u.longitude, u.latitude, sl.customer_location_code as customerLocationCode \
+ FROM UNIVERSE u join sponsor s on u.sponsor_key = s.sponsor_key  join sponsor_location sl on u.sponsor_location = sl.sponsor_location_key \
+ WHERE %s \
+ AND u.longitude BETWEEN ? AND ? AND u.latitude BETWEEN ? AND ? \
+ AND ( u.TRANSACTION_DATE BETWEEN ? AND ? ) \
+ AND sponsor_key in ({sponsorKey}) \
+ group by u.sponsor_location, s.sponsor_code, u.collector_key, u.distance, u.actual_distance, u.longitude, u.latitude, sl.customer_location_code
+
+info.tradeArea.sumsOnCollectors=SELECT c.longitude, c.latitude, PROMO_MAILABLE_FLAG PROMO_MAILABLE_FLAG, \
+  EMAILABLE_FLAG EMAILABLE_FLAG, \
+  WEB_ACTIVITY_FLAG WEB_ACTIVITY_FLAG, \
+  MOBILE_APP_ACTIVITY_FLAG MOBILE_APP_ACTIVITY_FLAG, \
+  total AS total \
+  FROM LONE.GROUPED_COLLECTOR_SUMS c \
+  WHERE c.longitude between ? and ? and c.latitude between ? and ?
+
+#  WHERE MDSYS.SDO_ANYINTERACT(get_point(c.longitude, c.latitude), SDO_UTIL.RECTIFY_GEOMETRY(?, 0.05)) = 'TRUE'
+
+taBuilder.issuance=SELECT info.LONGITUDE AS longitude, info.LATITUDE AS latitude, info.SPONSOR_LOCATION AS locationCode \
+ FROM (\
+ SELECT u.LONGITUDE, u.LATITUDE, u.SPONSOR_LOCATION, u.DISTANCE, u.ACTUAL_DISTANCE, \
+   SUM(u.%s) OVER (ORDER BY u.DISTANCE ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) / SUM(u.%s) OVER() AS issuance \
+ FROM UNIVERSE u \
+ WHERE u.SPONSOR_LOCATION = ? \
+   AND ( u.TRANSACTION_DATE BETWEEN ? AND ? ) \
+   AND NOT u.DISTANCE = -1 \
+   AND NOT u.LATITUDE = 0 \
+   %s \
+ ) info \
+ WHERE info.issuance <= ? \
+ AND info.DISTANCE >= info.ACTUAL_DISTANCE \
+ GROUP BY info.LONGITUDE, info.LATITUDE, info.SPONSOR_LOCATION
+
+taMinimumValues.fragment=and collector_key in ( \
+    select collector_key from  \
+    ( \
+    select collector_key, sponsor_key, sum(count) count, sum(spend) spend, sum(unit) units  from universe \
+    where \
+        (TRANSACTION_DATE BETWEEN ? AND ?) \
+    group by collector_key, sponsor_key \
+    ) \
+    where count >= ? and spend >= ? and units >= ? and sponsor_key in ({sponsorKey})\
+) \
+
+taMinimumValues.fragment.checker=and collector_key in ( \
+    select collector_key from  \
+    ( \
+    select collector_key, sponsor_key, sum(count) count, sum(spend) spend, sum(unit) units  from universe \
+    where \
+        (TRANSACTION_DATE BETWEEN ? AND ?) \
+    group by collector_key, sponsor_key \
+    ) \
+    where count >= ? and spend >= ? and units >= ? and sponsor_key in ({sponsorKey})\
+) \
+
+minimumValues.fragment=\
+and collector_key in ( \
+       select collector_key from \
+         ( \
+           select collector_key, sponsor_key, sum(count) count, sum(spend) spend, sum(unit) units  from universe \
+           where \
+             (TRANSACTION_DATE BETWEEN %date1 AND %date2) \
+           group by collector_key, sponsor_key \
+         ) \
+       where count >= %count and spend >= %spend  and  units >= %units and sponsor_key in ({sponsorKey})\
+     )\
+
+#minimumValues.fragment.sumAnalysis=\
+#and collector_key in ( \
+#    select collector_key from ( \
+#       select collector_key, sum(spend1) s1, sum(spend2) s2, sum(units1) u1, sum(units2) u2, sum(txn1) t1, sum(txn2) t2 from \
+#        ((select collector_key, spend spend1, 0 spend2, unit units1, 0 units2, count txn1, 0 txn2 from UNIVERSE \
+#            WHERE TRANSACTION_DATE BETWEEN %date1 AND %date2 %subCondition%) \
+#        union all \
+#         (select collector_key, 0 spend1, spend spend2, 0 units1, unit units2, 0 txn1, count txn2 from UNIVERSE \
+#            WHERE TRANSACTION_DATE BETWEEN %date1 AND %date2 %subCondition%) \
+#        ) \
+#        group by collector_key) \
+#        where s1 > %spend and s2 > %spend and \
+#            u1 > %units and u2 > %units and \
+#            t1 > %count and t2 > %count \
+#)
+
+minimumValues.fragment.sumAnalysis=\
+and collector_key in ( \
+    SELECT collector_key \
+        FROM \
+          ( \
+            (SELECT collector_key \
+            FROM UNIVERSE \
+            WHERE TRANSACTION_DATE BETWEEN %date1 AND %date2 \
+            %subCondition% \
+            group by collector_key \
+            having sum(spend) > %spend and sum(unit) > %units and sum(count) > %count \
+            ) \
+          INTERSECT \
+            (SELECT collector_key \
+            FROM UNIVERSE \
+            WHERE TRANSACTION_DATE BETWEEN %date1 AND %date2 \
+            %subCondition% \
+            group by collector_key \
+            having sum(spend) > %spend and sum(unit) > %units and sum(count) > %count \
+            ) \
+          ) \
+)
+
+infoAugmenter.create.fSA.augmenter.one=select s.sponsor_code as Code , count(distinct(u.collector_key)) as Collectors, \
+sum(u.spend) as Spend, \
+sum(u.unit) as Unit \
+from universe u join sponsor s on u.sponsor_key = s.sponsor_key \
+where u.FSA = ? \
+and u.sponsor_key in (%s) \
+and u.transaction_date >= ? \
+and u.transaction_date <= ? \
+%s \
+group by s.sponsor_code
+
+infoAugmenter.create.fSA.augmenter.three=SELECT COUNT(DISTINCT(collector_key)) as Collectors FROM LONE.COLLECTOR_ACTIVE WHERE FSA = ?
+
+sufficient.transaction.checker=select * from universe u \
+WHERE u.TRANSACTION_DATE BETWEEN ? AND ? %s and rownum < 5
+sufficient.transaction.checker.token=AND SPONSOR_LOCATION
+sufficient.transaction.checker.token.bySponsorKey=AND u.SPONSOR_KEY in ({sponsorKey})
+
+legends.nwTa=SELECT sponsor_location.sponsor_location_code as sponsorLocationCode, \
+ sponsor_location_colors.NWATCH_COLOR as nwColor,sponsor_location_colors.TA_COLOR as taColor \
+ from lone.sponsor_location_colors \
+ inner join sponsor_location on sponsor_location.sponsor_location_key = sponsor_location_colors.sponsor_location_key \
+ WHERE sponsor_location_colors.SPONSOR_LOCATION_KEY in (%s) \
+ ORDER BY sponsor_location.sponsor_location_code
+
+kms.dynamicLayers.postalCode=SELECT POSTAL_CODE, TOTAL_NUM_HHLDS, \
+ POSTAL_CODE_CENTROID_LONGITUDE AS LONGITUDE, POSTAL_CODE_CENTROID_LATITUDE AS LATITUDE, \
+ null AS RENDITION \
+ FROM LONE.POSTAL_CODE \
+ WHERE MDSYS.SDO_ANYINTERACT(GET_POINT(POSTAL_CODE_CENTROID_LONGITUDE, POSTAL_CODE_CENTROID_LATITUDE), %s ) = 'TRUE'
+
+reports.distanceDecay.projectedAmTransactions=select sum(total) collectors, ? sort from LONE.GROUPED_COLLECTOR_SUMS c \
+ where SDO_ANYINTERACT(get_point(c.longitude, c.latitude), ?) = 'TRUE'
+reports.distanceDecay.projectedSponsor=SELECT count(distinct collector_key) AS collectors, ? AS sort \
+ FROM UNIVERSE u \
+ WHERE u.SPONSOR_KEY in (%s) AND ( u.TRANSACTION_DATE BETWEEN ? AND ? ) \
+ AND SDO_ANYINTERACT(u.geom, ?) = 'TRUE' \
+ %FRAGMENT%
+reports.distanceDecay.locationTransactions.first=select count(distinct collector_key) collectors, sum(count) transactions, sum(spend) spend, sum(unit) units, ? sort \
+FROM UNIVERSE \
+WHERE \
+SPONSOR_LOCATION = ? \
+AND DISTANCE >= ? and DISTANCE < ? \
+AND (TRANSACTION_DATE BETWEEN ? AND ? ) \
+%FRAGMENT%
+reports.distanceDecay.locationTransactions.second=select count(distinct collector_key) collectors, sum(count) transactions, sum(spend) spend, sum(unit) units, ? sort \
+FROM UNIVERSE WHERE \
+SPONSOR_LOCATION = ? \
+AND DISTANCE >= ? \
+AND ( TRANSACTION_DATE BETWEEN ? AND ? ) \
+%FRAGMENT%
+reports.distanceDecay.locationTransactions.third=select count(distinct collector_key) collectors, sum(count) transactions, sum(spend) spend, sum(unit) units, ? sort \
+FROM UNIVERSE \
+WHERE \
+SPONSOR_LOCATION = ? \
+AND DISTANCE = ? \
+AND ( TRANSACTION_DATE BETWEEN ? AND ? ) \
+%FRAGMENT%
+reports.summary.locationTotal=SELECT SPONSOR_LOCATION AS locationKey, \
+count(distinct collector_key) AS totalCollectors, \
+sum(count) AS totalTransactions, \
+sum(spend) AS totalSpends, \
+sum(unit) AS totalUnits \
+FROM UNIVERSE \
+WHERE SPONSOR_LOCATION IN %s \
+%FRAGMENT% \
+AND TRANSACTION_DATE >= ? AND TRANSACTION_DATE <= ? GROUP BY SPONSOR_LOCATION
+
+reports.summary.summaryReport=SELECT sl.SPONSOR_LOCATION_CODE locationCode, \
+ u.sponsor_location locationKey, \
+ s.sponsor_code sponsorCode, sl.customer_location_code customerLocationCode,\
+ sl.SPONSOR_LOCATION_NAME locationName, \
+ sdo_geom.sdo_distance(get_point(sl.LONGITUDE, sl.LATITUDE), get_point(?, ?) , 0.05, 'unit=KM') distance, \
+ u.collectors, \
+ u.transactions, \
+ u.spends, \
+ u.units \
+ from ( \
+ select sponsor_location, \
+ sponsor_key, \
+ count(distinct collector_key) collectors, \
+ sum(count) transactions, \
+ sum(spend) spends, \
+ sum(unit) units \
+ from universe \
+ where sponsor_key %s \
+ and transaction_date >= ? and transaction_date <=? \
+ and sdo_anyinteract(geom, ?) = 'TRUE' \
+ %s \
+ group by sponsor_location, sponsor_key \
+ ) u \
+ join sponsor_location sl on sl.sponsor_location_key = u.sponsor_location \
+ join lone.sponsor s on s.sponsor_key = u.sponsor_key \
+ order by spends desc
+
+locations.defaultQuery=select sponsor_location_key key, sponsor_location_code code, sponsor_location_name locationName, \
+longitude, latitude, city, province_code provinceCode, postal_code postalCode, sponsor_key sponsorKey, customer_location_code customerLocationCode, sponsor_code sponsorCode \
+from sponsor_location \
+where 1=1
+
+locations.queryLocationKey=select sponsor_location_key key, sponsor_location_code code, sponsor_location_name locationName, \
+longitude, latitude, city, province_code provinceCode, postal_code postalCode, sponsor_key sponsorKey, customer_location_code customerLocationCode, sponsor_code sponsorCode \
+from sponsor_location \
+where sponsor_location_key=?
+
+locations.queryLocationCode=select sponsor_location_key key, sponsor_location_code code, sponsor_location_name locationName, \
+longitude, latitude, city, province_code provinceCode, postal_code postalCode, sponsor_key sponsorKey, customer_location_code customerLocationCode, sponsor_code sponsorCode \
+from sponsor_location \
+where sponsor_location_code=?
+
+user.getAttributes   = SELECT * FROM  LONE.USER_ATTRIBUTES WHERE USER_ID = ?
+user.deleteAttributes= DELETE FROM LONE.USER_ATTRIBUTES WHERE USER_ID=?
+user.insertAttributes= INSERT INTO LONE.USER_ATTRIBUTES VALUES (?,?,?)
