@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="K10077" default="build" basedir=".">
+    <target name="init" >
+        <property environment="env"/>
+        <pathconvert dirsep="/" property="basedir.url">
+            <path path="${basedir}"/>
+        </pathconvert>
+        <property name="dist.dir" value="dist"/>
+        <property name="build.dir" value="build"/>
+        <property name="build.web.dir" value="${build.dir}/web"/>
+        <property name="build.meta.inf" value="${build.dir}/web/META-INF"/>
+        <property name="build.web.inf" value="${build.dir}/web/WEB-INF"/>
+        <property name="build.classes.dir" value="${build.dir}/web/WEB-INF/classes"/>
+        <property name="build.lib.dir" value="${build.dir}/web/WEB-INF/lib"/>
+        <property name="build.ext-lib.dir" value="${build.dir}/web/WEB-INF/ext-lib"/>
+        <property name="conf.dir" value="src/conf"/>
+        <property name="web.dir" value="web"/>
+        <property name="web.inf.dir" value="web/WEB-INF"/>
+        <property name="meta.inf.dir" value="web/META-INF"/>
+        <property name="ext-lib.dir" value="web/WEB-INF/ext-lib"/>
+        <property name="lib.dir" value="web/WEB-INF/lib"/>
+        <property name="logs" value="logs"/>
+        <delete dir="${dist.dir}"/>
+        <delete dir="${build.dir}" failonerror="false"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.web.dir}"/>
+        <mkdir dir="${build.meta.inf}"/>
+        <mkdir dir="${build.web.inf}"/>
+    </target>
+    <target name="compile" depends="init">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac srcdir="src/java" destdir="${build.classes.dir}" debug="true" nowarn="true" fork="true" memoryinitialsize="256m" memorymaximumsize="512m" includeantruntime="true">
+            <compilerarg value="-Xlint:none"/>
+            <classpath>
+                <fileset dir="${lib.dir}" includes="*.jar"/>
+                <fileset dir="${ext-lib.dir}" includes="*.jar"/>
+            </classpath>
+        </javac>
+        <copy todir="${build.web.inf}" flatten="true" verbose="true">
+            <fileset dir="${web.inf.dir}">
+                <include name="*.*"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.classes.dir}">
+            <fileset dir="src/java" includes="**/*.*" excludes="**/*.html, **/*.java" casesensitive="false"/>
+        </copy>
+        <copy todir="${build.lib.dir}" flatten="true" verbose="true">
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.ext-lib.dir}" flatten="true" verbose="true">
+            <fileset dir="${ext-lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.web.dir}/common" flatten="true" verbose="true">
+            <fileset dir="${web.dir}/common" includes="*.*"/>
+        </copy>
+        <copy todir="${build.web.dir}/console">
+            <fileset dir="${web.dir}/console">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.web.dir}/css" flatten="true" verbose="true">
+            <fileset dir="${web.dir}/css" includes="*.*"/>
+        </copy>
+        <copy todir="${build.web.dir}/js">
+            <fileset dir="${web.dir}/js">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.web.dir}/main">
+            <fileset dir="${web.dir}/main">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.web.dir}/secure">
+            <fileset dir="${web.dir}/secure">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+        <copy todir="${build.meta.inf}" flatten="true" verbose="true">
+            <fileset dir="${meta.inf.dir}" includes="*.*"/>
+        </copy>
+        <copy todir="${build.web.dir}" flatten="true" verbose="true">
+            <fileset dir="${web.dir}" includes="index.jsp"/>
+        </copy>
+    </target>
+    <target name="war" depends="compile" description="create war">
+        <jar jarfile="${dist.dir}/AMMAP.war" basedir="${build.web.dir}"/>
+    </target>
+</project>

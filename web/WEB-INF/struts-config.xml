@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE struts-config PUBLIC
+"-//Apache Software Foundation//DTD Struts Configuration 1.2//EN"
+"http://jakarta.apache.org/struts/dtds/struts-config_1_2.dtd">
+
+
+<struts-config>
+    <!-- don't use form bean... I am watching you o.O -->
+    <form-beans></form-beans>
+    <global-exceptions></global-exceptions>
+    <global-forwards></global-forwards>
+
+    <action-mappings>
+
+        <!-- FORWARD ACTIONS -->
+        <action path="/secure/kms" type="com.lo.web.ForwardKMSAction"/>
+
+        <!-- ERROR ACTIONS -->
+        <action path="/console/error" type="org.apache.struts.actions.ForwardAction"
+                        parameter="/console/index.jsp" />
+        <action path="/secure/error" type="org.apache.struts.actions.ForwardAction"
+                        parameter="/secure/index.jsp" />
+        <action path="/main/error" type="org.apache.struts.actions.ForwardAction"
+                        parameter="/secure/index.jsp" />
+
+        <action path="/secure/expired" type="org.apache.struts.actions.ForwardAction"
+                        parameter="/secure/index.jsp?expired=true" />
+
+        <!-- with SSO -->
+        <action path="/secure/login" type="com.lo.web.sso.LoginActionSSO">
+            <forward name="default" path="/secure/SponsorChooser.do" />
+            <forward name="admin" path="/console/pageChooser.jsp" />
+            <forward name="error" path="/secure/index.jsp" />
+            <forward name="loadingProcess" path="/secure/loadingProcess.jsp" />
+            <forward name="init" path="/secure/init.do" />
+        </action>
+
+        <action path="/secure/init" type="com.lo.web.InitAction">
+            <forward name="default" path="/main/index.jsp" />
+            <forward name="error" path="/secure/index.jsp"/>
+        </action>
+        <action path="/secure/SponsorChooser" type="com.lo.web.SponsorChooserAction">
+            <forward name="default" path="/secure/sponsorChooser.jsp" />
+            <forward name="init" path="/secure/init.do" />
+        </action>
+        <action path="/secure/forceLoad" type="com.lo.web.ForceLoadAction" />
+        <action path="/secure/DownloadPDF" type="com.lo.pdf.struct.DownloadPDFAction" />
+        <action path="/secure/keepAlive" type="com.lo.web.KeepAliveAction" />
+
+        <!-- CONSOLE ACTIONS -->
+        <action path="/console/login" type="com.lo.web.sso.LoginActionSSO">
+            <forward name="default" path="/console/InitMonitoring.do" />
+            <forward name="error" path="/console/index.jsp" />
+        </action>
+        <action path="/console/UpdateMonitoring" type="com.lo.console.struts.UpdateMonitoringAction">
+            <forward name="default" path="/console/jspf/tableSorter.jsp" />
+        </action>
+        <action path="/console/InitMonitoring" type="com.lo.console.struts.InitMonitoringAction">
+            <forward name="default" path="/console/main.jsp"/>
+        </action>
+        <action path="/console/UpdateSponsors" type="com.lo.console.struts.UpdateSponsorsAction">
+            <forward name="default" path="/console/jspf/sponsorSorter.jsp" />
+        </action>
+
+        <action path="/secure/getZoom" type="com.lo.web.getZoom" />
+
+    </action-mappings>
+
+    <controller processorClass="org.apache.struts.tiles.TilesRequestProcessor" />
+
+    <message-resources parameter="com/myapp/struts/ApplicationResource" />
+
+    <plug-in className="org.apache.struts.tiles.TilesPlugin">
+        <set-property property="definitions-config" value="/WEB-INF/tiles-defs.xml" />
+        <set-property property="moduleAware" value="true" />
+    </plug-in>
+
+</struts-config>

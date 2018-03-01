@@ -1,0 +1,1349 @@
+html, body {
+    padding: 0px;
+    margin: 0px;
+    height: 100%;
+    width: 100%;
+}
+.ui-widget {
+    font-size: 11px;
+    font-family: Verdana,Arial,sans-serif;
+}
+.baseTable {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    font-size: 11px;
+    font-family: Verdana,Arial,sans-serif; 
+}
+.fullTable, #firstRelativeMapContainer, #secondRelativeMapContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-size: 11px;
+    font-family: Verdana,Arial,sans-serif;
+}
+.divMap{
+    width: 100%;
+    height: 100%;
+}
+#layerControllerInnerContainer {
+    height: 100%;
+}
+#tradeAreaDownloadBtn{ width:180px; }
+
+#firstRelativeMapContainer, #secondRelativeMapContainer, #layerControllerInnerContainer, #menuInnerContainer, #measureEl, 
+#applyAreaInnerDiv, .legendList {
+    border: 1px solid #0072CF;
+}
+
+#menuInnerContainer {
+    position: relative;
+    width: 100%;
+}
+
+.ui-slider-horizontal {
+    height: 0.6em;
+}
+
+#layerControllerContainer, #menuContainer, #applyArea, #cellReporting {
+    padding: 5px;
+}
+#layerControllerContainer{
+    height: 100%
+}
+#cellReporting {
+    height: 26px;
+}
+
+#menuContainer {
+    padding-top: 10px;
+    height: 1px;
+    overflow: visible;
+}
+
+#footer {
+    position: relative;
+    height: 0px;
+}
+#dashboard {
+    height: 100%;
+    width: 300px;
+    vertical-align: top;
+}
+
+#firstMap, #secondMap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#firstMapContainer, #secondMapContainer {
+    padding-top: 4px;
+    padding-bottom: 6px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#secondMapContainer {
+    position: absolute;
+    left: -10000px;
+    top: -10000px;
+}
+
+#firstMapContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#slaveDisabler {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 5005;
+    display: none;
+}
+
+#locationList {
+    width: 100%;
+    position: relative;
+    top: 5px;
+}
+
+#layerController {
+    width: 100%;
+}
+
+#widthLimiter {
+    position: relative;
+    width: 1000px;
+    bottom: 20px;
+}
+
+#layerContainer {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.layerNameElement {
+    font-family: Arial;
+    font-size: 12px;
+    width: auto;
+    height: 20px;
+    padding-left: 2px;
+}
+
+.layerCheckElement {
+    padding-left: 5px;
+    width: 15px;
+}
+
+#progressBar {
+    display: none;
+    margin-top: 16px;
+    margin-bottom: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.ui-progressbar-value {
+    border-width: 0px 1px 0px 1px !important;
+    margin-top: 0px !important;
+    background-image: url(../images/pbar-ani.gif);
+}
+
+.hasDatepicker {
+    vertical-align: bottom;
+    width: 75px;
+    border: 1px solid #0072CF;
+    margin-left: auto;
+    margin-right: auto;     
+    margin-bottom: 1px;
+}
+
+.periodCaption{
+    width: 52px;
+    display: inline-block;
+}
+
+.slaveHasDatepicker{
+    width: 45%;
+}
+.slaveHasDatepicker  + img{
+    margin-left: 5px;
+    vertical-align: top;
+}
+
+#ui-datepicker-div {
+    z-index: 5000 !important;
+}
+
+.ui-helper-hidden-accessible {
+    top: -10000px;
+}
+
+#infoToolWindow {
+    position: relative;
+}
+
+#infoToolWindowLoading, #infoToolWindowNoResult, #infoToolWindowError {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: white;
+    width: 375px;
+    height: 240px;
+    text-align: center;
+}
+
+.whiteTD {background-color:#fff;}
+
+.infotoolWindowLayer {
+    border-bottom: 1px solid black;
+    padding-bottom: 2px;
+}
+
+.infotoolWindowResult {
+    font-size: 1em;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.infotoolWindowRow_0, .infotoolWindowRow_1 {
+    padding-top: 2px;
+}
+
+.infotoolWindowRow_0 {
+    background-color: #eee;
+}
+
+.infotoolWindowKey {
+    /*    font-weight: bold;*/
+    padding-right: 5px;
+    text-transform:uppercase;
+}
+
+#mapTools {
+    position: absolute;
+    right: 5px;
+    width: 275px;
+    padding-top: 10px;
+    overflow: visible;
+}
+
+#findControl {
+    position: absolute;
+    height: 23px;
+    width: 255px;
+    float: right;
+    top: 8px;
+    left: 60px;
+    margin-top: 3px;
+    padding: 4px;
+    border-radius: 6px 6px 6px 6px;
+    background-color: #197FD1;
+    box-shadow: 0px 0px 6px 1px #b8b894;
+    z-index: 5002;
+}
+#findControl input{
+    width: 222px;
+    padding-top:2px;
+    padding-left:2px;
+    float: left;
+}
+
+#mapTools, #dashboardToggler, #infoToolButton, #rulerButton, #placemarkButton, #selectionToolCircular, #selectionToolPolygonal, #selectionToolCancel, #slaveLockToggler, #stopCompareBtn, .legend {
+    z-index: 5001;
+    top: 0px;
+}
+
+#dashboardToggler, #infoToolButton, #rulerButton, #placemarkButton, #selectionToolCircular, #selectionToolPolygonal, #selectionToolCancel, #slaveLockToggler, #stopCompareBtn, .legendToggler {
+    position: relative;
+    cursor: pointer;
+    height: 42px;
+    width: 43px;
+    float: right;
+}
+#pegmanButton{
+    height: 30px;
+    margin: auto;
+    width: 15px;
+    margin-top: 3px;
+    background: url(../images/StreetViewPegman.gif) 0px 0px no-repeat;
+    cursor: pointer;
+}
+#streetViewControlContainer{
+    border-radius: 4px;
+    height: 35px;
+    width: 35px;    
+    position: absolute;
+    left: 15px;
+    top: 240px; 
+    z-index: 5001;   
+}
+
+.transparentDiv{
+    background:rgba(255,255,255,0.6);
+}
+
+#streetViewModal{
+    padding: 0;
+}
+.ui-widget-overlay.ui-front{
+    z-index: 5002 !important;
+}
+#streetViewContent{
+    width: 100%;   
+}
+.maximizeDiv, .minimizeDiv {
+    cursor: pointer;
+}
+
+.buttonActivated {
+    background-position: 0px -43px;
+    color: #0072cf;
+}
+
+#selectionToolCancel {
+    background-image: url(../images/MAP_BTN_Unselect.png);
+}
+
+#infoToolButton {
+    background-image: url(../images/MAP_BTN_Info.png);
+}
+
+#rulerButton {
+    background-image: url(../images/MAP_BTN_Ruler.png);
+}
+
+#placemarkButton {
+    background-image: url(../images/MAP_BTN_Marker.png);
+}
+
+#selectionToolCircular {
+    background-image: url(../images/MAP_BTN_Select_Circ.png);
+}
+
+#selectionToolPolygonal {
+    background-image: url(../images/MAP_BTN_Select_Poly.png);
+}
+
+#slaveLockToggler {
+    background-image: url(../images/MAP_BTN_Lock.png);
+}
+#tradeAreaH3 div, #filterH3 div, #hotSpotH3 div, #nwatchH3 div, #storeLevelAnalysisH3 div{
+    background-image: url(../images/activeDot.png);
+    width: 12px;
+    height: 12px;
+    float: left;
+    margin-top: 1px;
+    margin-right: 5px;
+}
+#compareBtn{
+    background-image: url(../images/MAP_BTN_splitScreen.png);
+    position: absolute;
+    width: 44px;
+    height: 43px;
+    top: 195px;
+    left: 10px;
+    cursor: pointer;
+    z-index: 5001;
+}
+.buttonDotOn {
+    background-position: 0px 0px;
+    color: #0072cf;
+}
+.buttonDotOff {
+    background-position: 0px -15px;
+    color: #0072cf;
+}
+.end{
+    background-color: #eeeeee;
+    border-top: solid;
+    border-top-color: #e4e4e4;
+    padding: 3px;
+    height: 30px
+}
+.btnOk{
+    width: 50px;
+    height: 22px;
+    border-radius: 8px 8px 8px 8px;
+    text-align: center;
+    padding-top: 6px;
+    color: white;
+    float:right;
+    background: url(../images/Menu_Fill_Off.png) repeat-x !important;
+}
+.legendToggler {
+    width: 22px;
+    height: 23px;
+    background-image: url(../images/Legend_Expand.png);
+}
+
+#dashboardToggler, #slaveLockToggler, #stopCompareBtn, .legend {
+    position: absolute;
+}
+
+#dashboardToggler {
+    top: 280px;
+    float: none;
+    background-image: url(../images/Expand.png);
+    width: 19px;
+    height: 38px;
+    margin-left: 0px;
+}
+
+#slaveLockToggler, #stopCompareBtn {
+    float: none;
+    bottom: 45px;
+    top: auto;
+    z-index: 5100;
+    margin-left: 10px;
+    display: none;
+}
+
+.legend, #stopCompareBtn {
+    z-index: 5000;
+    right: 0px;
+    bottom: 0px;
+    top: auto;
+    overflow: visible;
+}
+
+#stopCompareBtn {
+    display: block;
+    z-index: 5100;
+    top: 250px;
+    background-image: url(../images/Collapse.png);
+    width: 19px;
+}
+
+.legendList {
+    position: absolute;
+    display: none;
+    bottom: -1px;
+    right: -1px;
+    overflow: visible;
+    background-color: white;
+    width: 170px;
+}
+
+#hotSpotOpacityContainer {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.menuSectionSeparator {
+    border-bottom: 2px solid #BBB;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+
+#hotSpotOpacityLabel {
+    width: 50px;
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 11px;
+}
+
+#hotSpotDescBtn, #tradeAreaDescBtn, #findDescBtn, #nwatchDescBtn, #reportDescBtn, #slaDescBtn, #dataFilteringBtn {
+    background: url(../images/help.png) 0px 0px no-repeat;
+    position: absolute;
+    top: 4px;
+    right: 0px;
+    cursor: pointer;
+    height: 20px;
+    width: 20px;
+}
+
+.tradeAreaBtn{width: 50px; }
+.w50 { width: 50px; }
+.nosize { width:0px; height:0px;}
+.p5{padding: 5px;}
+.smaller{ font-size: smaller; }
+.darkgray{ color: darkgray; }
+.nowrap{ white-space: nowrap; }
+.msgLayout{
+    position: absolute;
+    left:0px;
+    top: 0px;
+    border: 2px solid red;
+    background-color: lightgoldenrodyellow;
+    color:black;
+    z-index: 2147483647;
+    padding: 5px;
+}
+.fullheight{ height: 100%; }
+.hidden{ display: none; }
+td.center{ text-align: center; }
+td.bottom{ vertical-align: bottom; }
+div.absolute{position: absolute;}
+div.left{left:0px;}
+div.top{top: 0px;}
+.b2red{border: 2px solid red;}
+.black{color:black;}
+.lightgoldenrodyellow-bkg{background-color: lightgoldenrodyellow;}
+.bold{font-weight: bold;}
+.zMax{z-index: 2147483647; }
+
+#masterLegendCanvas {min-width:173px}
+.hotspotLegendTable {
+    width: 200px;
+    font-size: 9px;
+    font-family: Verdana,Arial,sans-serif;
+    text-align: center;
+    height: 1px !important;
+}
+
+.hotspotLegendTitle, .hotspotLegendSubTitle, .nwTaLegendTitle {
+    padding-left: 10px;
+    padding-right: 5px;
+    text-align:left;
+}
+
+.hotspotLegendSubTitle{
+    font-family:Helvetica;
+    font-size: 13px;
+    font-weight: bold;
+    padding-left:10px;
+}
+
+.hotspotLegendTitle, .nwTaLegendTitle {
+    color:#222;
+    padding-top: 0;
+    padding-bottom: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    font-family:Arial,sans-serif;
+}
+
+.hotspotPrecision {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    text-align:left;
+}
+
+.hotspotLegendColorTd {
+    width: 45px;
+}
+
+.hotspotLegendValueTd {
+    text-align: left;
+}
+
+.hotspotLegendTextDiv, .nwtaLegendTextDiv {
+    font-size: 9px;
+    margin-top: -3px;
+}
+
+.hotspotLegendColorDiv, .hotspotLegendColorLastDiv, .nwtaLegendColorDiv {
+    width: 20px;
+    height: 24px;
+    margin-left: 10px;
+}
+
+.hotspotLegendColorDiv, .nwtaLegendColorDiv {
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+}
+
+.hotspotLegendColorLastDiv, .nwtaLegendColorLastDiv {
+    border-bottom: 1px solid black;
+}
+
+.olControlLayerSwitcher {
+    top: 50px !important;
+}
+
+#userGuide{
+    margin-top: 36px;
+    font-size: small;
+    text-align:right;
+}
+
+.ui-dialog { 
+    z-index: 10002 !important ;
+}
+
+#loyaltyOneLogo {
+    width: 156px;
+    background: url(../images/LOGO_LoyaltyOne.png) 0px 0px no-repeat;
+    right: 0px;
+    height: 56px;
+    top: 0px;
+    float: left;
+}
+
+#compareBtnTD {
+    width: 250px;
+}
+
+#compareBtn1 {
+    margin-left: 50px;
+    position: relative;
+    width: 117px;
+    top: -5px;
+}
+
+.btn {
+    cursor: pointer;
+    color: white;
+    font-size: 11px;
+    font-family: Verdana,Arial,sans-serif;
+    font-weight: bold;
+}
+
+#applyBtn {
+    margin-top: 10px;
+}
+
+.btnLeft {
+    width: 20px;
+    height: 36px;
+    background-image: url('../images/BTN_Left.png');
+    background-repeat: no-repeat;
+}
+
+.btnCenter {
+    background-image: url(../images/BTN_Fill.png);
+    background-repeat: repeat-x;
+}
+
+.btnCenter {
+    padding-top: 0px;
+}
+
+.btnRight {
+    width: 20px;
+    background-image: url(../images/BTN_Right.png);
+    background-repeat: no-repeat;
+}
+
+#compareBtnArrow {
+    position: absolute;
+    right: 0px;
+    top: -7px;
+    width: 15px;
+    height: 36px;
+    background-image: url('../images/Arrow.png');
+    background-repeat: no-repeat;
+}
+
+.menuLeftOn {
+    width: 6px;
+    height: 28px;
+    background-image: url(../images/Menu_Left_On.png);
+}
+
+.menuCenterOn, .ui-state-default, .ui-state-active, .ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited {
+    font-size: 12px !important;
+    color: #ffffff !important;
+    font-family: Arial;
+    font-weight: bold;
+}
+
+.menuCenterOn, .ui-state-active, .ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited, .ui-widget-header {
+    color: #0072cf !important;
+}
+
+.layersDiv {
+    background-color: #0072cf !important;
+}
+
+.ui-accordion-header {
+    margin-top: 0px !important;
+    margin-bottom: 1px !important;
+    line-height: normal !important;
+}
+
+.ui-state-default {
+    margin-bottom: 0px !important;
+}
+
+.ui-state-active {
+    margin-bottom: 1px !important;
+}
+
+.ui-accordion-content {
+    margin-bottom: 1px !important;
+    border-left: none !important;
+    border-right: none !important;
+    padding-left: 10px !important;
+}
+
+#hotSpotDiv{
+    margin-left: 3px;
+}
+
+.menuCenterOn {
+    background: url(../images/Menu_Fill_On.png);
+}
+
+#compareInnerDiv {
+    position: relative;
+}
+
+.menuRightOn {
+    background: url(../images/Menu_Right_On.png);
+}
+
+#layerContainerTitleTD {
+    height: 1px;
+}
+
+#layerContainerTitle {
+    width: 100%;
+}
+
+#applyArea {
+    height: 62px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+#applyAreaInnerDiv {
+    background-color: #f0f0f0;
+    height: 100%;
+}
+
+#applyAreaSelectDiv {
+    width: 184px;
+    margin-left: 7px;
+    float:left;
+    padding-top: 13px;
+}
+
+.ui-state-default {
+    background: url(../images/Menu_Fill_Off.png) repeat-x !important;
+}
+
+.ui-state-active, .ui-widget-header {
+    background: url(../images/Menu_Fill_On.png) repeat-x !important;
+}
+
+.ui-corner-top, .ui-corner-all, .ui-corner-bottom {
+    -moz-border-radius: 0px 0px 0px 0px !important;
+}
+
+.ui-icon-triangle-1-e, .ui-icon-triangle-1-s {
+    display: none !important;
+}
+
+.datepickerLabel {
+    float: left;
+    left: 10px;
+    width: 25%;
+    margin-top: 2px;
+    font-size: 14px;
+    font-family: Arial;
+    margin-right: 5px;
+    margin-left: 2px;
+}
+
+.datepickerDiv, .slaveDatepickerDiv {
+    position: relative;
+    float: left;
+    height: 25px;
+    width: 165px;
+    top: 0px;
+    padding-top: 6px;
+}
+
+.defaultBtnWrapper {
+    float: right;
+    margin-right: 7px;
+}
+.defaultBtnWrapper td {padding-top:4px;}
+
+#leftDatePicker {
+    padding-top: 0px;
+    width: 50%;
+}
+#leftDatePicker .defaultBtnWrapper {width:90px;float:right;}
+#leftDatePicker .line2Wrapper {float:left;width:275px;}
+#leftDatePicker .wrapper {margin-right:0px;}
+#leftDatePicker, #slaveDatepickers {vertical-align:top;}
+#leftDatePicker .wrapper, #slaveDatepickers .wrapper {padding-top:5px;}
+
+#slaveDatepickers, #comparisonSlaveDatepickers {
+    position: absolute;
+    bottom: 46px;
+    top: auto;
+    z-index: 5002;
+    left: 50%;
+    margin-left: -170px;
+    background-color: white;
+    padding: 0px 5px 0px 5px;
+    border: solid #0072CF 1px;
+}
+#comparisonSlaveDatepickers{
+    border-top-width:0;
+    bottom: 15px;
+}
+
+.ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
+    width: 55px;
+}
+
+.ui-datepicker-trigger {
+    right: 5px;
+    top: 9px;
+}
+
+.panZoomBarContainer {
+    position: absolute;
+}
+
+.compassEl, .compassCenterEl, .compassMiddleEl {
+    width: 19px;
+    height: 19px;
+    cursor: pointer;
+}
+
+.compassMiddleEl {
+    height: 13px;
+}
+
+.compassCenterEl {
+    width: 13px
+}
+
+.compassNW {
+    background-image: url(../images/compass/compass_NW_Off.png);
+}
+
+.compassN {
+    background-image: url(../images/compass/compass_N_Off.png);
+}
+
+.compassNE {
+    background-image: url(../images/compass/compass_NE_Off.png);
+}
+
+.compassW {
+    background-image: url(../images/compass/compass_W_Off.png);
+}
+
+.compassC {
+    background-image: url(../images/compass/compass_center_Off.png);
+}
+
+.compassE {
+    background-image: url(../images/compass/compass_E_Off.png);
+}
+
+.compassSW {
+    background-image: url(../images/compass/compass_SW_Off.png);
+}
+
+.compassS {
+    background-image: url(../images/compass/compass_S_Off.png);
+}
+
+.compassSE {
+    background-image: url(../images/compass/compass_SE_Off.png);
+}
+
+.zoomBar {
+    position: relative;
+    left: 11px;
+    top: 5px;
+}
+
+.zoomBarBar {
+    background-image: url(../images/ProgressiveZoomBar/zoom_bar.png);
+    width: 31px;
+    cursor: pointer;
+    position: absolute;
+    top: 84px;
+    left: 11px;
+    width: 31px;
+}
+
+.zoomBarIn, .zoomBarOut {
+    width: 31px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.zoomBarIn {
+    background-image: url(../images/ProgressiveZoomBar/zoomIn_Off.png);
+}
+
+.zoomBarOut {
+    background-image: url(../images/ProgressiveZoomBar/zoomOut_Off.png);
+    margin-top: 75px;
+}
+
+.zoomBarSlider {
+    background-image: url(../images/ProgressiveZoomBar/cursor.png);
+    background-repeat: no-repeat;
+    width: 31px;
+    height: 12px;
+    margin-top: 65px;
+    top: 77x;
+    left: 11px;
+    cursor: pointer;
+    position: absolute;
+}
+
+.zoomCheckbox {
+    margin-left: 4px;
+    margin-bottom: 4px;
+    margin-top: 3px;
+}
+
+.pageDisabler {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 50000;
+    display: none;
+}
+
+.pageDisablerBg {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: gray;
+    opacity: .25;
+    filter: alpha(opacity=25);
+}
+
+#animStartCompare {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 1px solid black;
+    overflow: hidden;
+    margin-right: 50%;
+    right: -226px;
+    top: 240px;
+    z-index: 7000;
+}
+
+#newMap, #currentMap, #newerMap {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    height: 190px;
+    border: 1px solid black;
+    width: 185px;
+    background-image: url(../images/minimap.png);
+}
+
+#newMap, #newerMap {
+    width: 0px;
+    left: 5px;
+}
+
+#newerMap {
+    visibility: hidden;
+}
+
+.tradeAreaTxt {
+    width: 40px;
+}
+.tradeAreaTable {
+    table-layout: fixed;
+    height: auto;
+}
+.tradeAreaTable td{
+    width:100%;
+}
+.tradeAreaTable td.taLeft{
+    white-space: nowrap;
+    width:130px;
+}
+#tradeAreaCustomMsg {height:27px;vertical-align:top;color:#666;}
+#tradeAreaDiv {
+    overflow:visible;
+    height: 120px;
+}
+#tradeAreaDescWindowContent {max-height:500px;}
+
+.tradeAreaInfoTxt, .minInfoTxt{
+    font-family: sans-serif;
+    font-size: x-small;
+}
+
+.tradeAreaInfoCloseBtn {
+    cursor:pointer;
+
+}
+
+.tradeAreaInfoCloseBtnTD {
+    vertical-align: top;
+    width: 10px;
+}
+
+div.tradeAreaInfoSuperWrapper, div.tradeAreaInfoSuperWrapperSecond {
+    position: absolute; left: 50%;
+    bottom:20px;
+    z-index:5000;
+}
+div.tradeAreaInfoContainer {
+    left: -50%;
+    position:relative;
+    opacity: 0.9;
+    background-color: #FFF;
+    z-index: 1;
+    visibility: hidden;
+    padding:0;
+}
+
+.mapInfoBox {
+    padding: 5px;
+    position: absolute;
+    z-index: 1000;
+    height: 13px;
+    text-align: left;
+    background-color: #F0F0F0;
+    border: 1px solid #0072CF;
+    height:auto;
+}
+
+#measureEl {
+    display: none;
+    bottom: 15px;
+    margin-left: 50%;
+    left: -42px;
+    width: 83px;
+}
+
+.ui-autocomplete {
+    z-index: 10000 !important;
+}
+
+#findFieldTable {
+    height: 1px;
+}
+
+#findFieldLabel {
+    width: 1px;
+    padding-right: 5px;
+}
+
+#findField{
+    width: 95%;
+}
+
+#findBtn {
+    background-image: url(../images/magGlass.png);
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    float: right;
+    margin: 3px;
+}
+
+.accordionContent {
+    height: 185px;
+}
+
+.legendEmpty {
+    width: 180px;
+    padding-bottom: 20px;
+}
+
+.olHandlerBoxZoomBox {
+    border: 1px solid #00025F;
+    background-color: #0072CF;
+    opacity: .33;
+    filter: alpha(opacity=33);
+}
+
+.noshow {visibility: hidden;}
+
+.legendImg {
+    margin-top:10px;
+    float: left;
+    clear: both;
+    padding-left: 2px;
+}
+img.legendImg {padding-left:5px;}
+
+.clearfix:after {content: "."; display: block; height: 0; clear: both; visibility: hidden;}
+.clearfix {display: inline-block;}
+/* Hides from IE-mac \*/
+* html .clearfix {height: 1%;}
+.clearfix {display: block;}
+/* End hide from IE-mac */
+
+.olLayerGooglePoweredBy {
+    display: none !important;
+    left: auto !important;
+}
+
+.whiteTD {
+    background-color: #FFF;
+}
+.spacer {
+    height : 6px;
+}
+.layergroup{} 
+.layergrouplistchk{
+    width:100%;
+    border-bottom: 1px solid #CCCCCC;
+}
+.layergroupchk{}
+.layergroupmainchk{}
+.layergrouptitlename{
+    font-weight:bold;
+}
+.layergrouptitlename:hover{
+    cursor:pointer;
+}
+.layergrouptitlechk{
+    float:right;
+}
+.layerNameLine{
+    width:100%;
+}
+.layergrouptitle{
+    background-color: #EEEEEE;
+    padding:3px;
+    padding-bottom:6px;
+    border-bottom: 1px solid #CCCCCC;
+    color:#404040;
+}
+.layergrouptitle div{
+    display: inline;
+    cursor:default;
+}
+.layergrouptitlearrowshow{
+    background-image: url(../images/arrowshow.png);
+    background-position: center center;
+    background-repeat: no-repeat;
+    max-width:15px;
+    min-width:15px;
+    height:15px;
+}
+.layergrouptitlearrowshow:hover{
+    background-image: url(../images/arrowshowhover.png);
+    cursor:pointer;
+}
+
+.layergrouptitlearrowhide{
+    background-image: url(../images/arrowhide.png);
+    background-position: center center;
+    background-repeat: no-repeat;
+    max-width:15px;
+    min-width:15px;
+    height:15px;
+}
+.layergrouptitlearrowhide:hover{
+    background-image: url(../images/arrowhidehover.png);
+    cursor:pointer;
+}
+
+.ui-accordion .ui-accordion-content {position:relative;}
+
+#sponsorFilterContainer {width: 300px;padding:0 0 5px 0;}
+#sponsorFilterContainer button {cursor:pointer;}
+#sponsorFilterContainer .ui-icon-triangle-2-n-s {background-image:url(../images/dropdown-icon.png);background-position:0 0;margin-right:1px;}
+.ui-multiselect-menu {min-width:231px;}
+.ui-multiselect-checkboxes {overflow-y:auto !important;}
+
+.legendTitle {font-weight:bold;text-transform:uppercase;font-size:14px;font-family: Arial,sans-serif;text-align:center;color:#222;}
+.nwTaLegendContainer {margin:10px 0 0 0;clear:left;min-width:215px;}
+.nwTaLegendTitle {padding-top:0;}
+.nwTaLegendTable {margin:0 0 0 10px;width:225px;}
+.legendHeader {font-weight:bold;width:25px;}
+.nwtaLegendColorDiv {margin-left:0;}
+.nwType {
+    margin-left: 0px;
+    vertical-align: bottom;
+}
+.nwatchTable{
+    margin-left: 5px;
+}
+
+.labelNameSelect {
+    float: right;
+}
+.labelNameSelect select{
+    font-size: 11px;
+}
+div .ui-dialog-titlebar button{
+    border: 0px !important;
+    background: url(../images/Menu_Fill_On.png) repeat-x !important;
+}
+
+.arrowLeft-dialog::before, .arrowLeft-dialog::after {
+    content: "";
+    width: 0;
+    height: 0;
+    position: absolute;
+    bottom: 44%;
+    border-style: solid;
+    border-width: 15px;
+}
+
+.arrowLeft-dialog::before {
+    border-color: transparent #aaa transparent transparent;
+    left: -31px;
+}
+
+.arrowLeft-dialog::after {
+    border-color: transparent #fff transparent transparent;
+    left: -30px;
+}
+
+.arrowLeft-dialog {
+    overflow:visible;
+}
+
+.basicDates{   
+    width: 260px;
+    margin-bottom: 2px;
+    margin-left: 5px;
+    margin-top: 7px;
+}
+
+.basicDates img{
+    margin-left: 2px;
+    margin-right: 4px;
+
+}
+.comparisonDates{   
+    width: 260px;
+    margin-bottom: 4px;
+    margin-left: 5px;
+}
+
+.comparisonDates img{
+    margin-left: 2px;
+    margin-right: 4px;
+}
+
+.datesFilterSelect{
+    width: 186px;
+    margin-bottom: 5px;
+    margin-top: 7px;   
+}
+
+.ui-datepicker-calendar{
+    z-index: 6000;
+}
+
+.filterDatesWrapper{
+    overflow: hidden;
+    background-color: #f0f0f0;
+    height: 110px;
+    border-radius: 2px;
+    padding: 1em 1.5em 0em 1.5em;
+}
+
+#filterDiv{
+    padding: 0px !important;
+    height: 208px !important;
+}
+
+#fullTableDataFiltering{
+    height: 60%;
+    height: 40%;
+    padding-top: 10px;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+}
+.customizeRangeBtn {
+    height: 18px;
+    width: 18px;
+    border-radius: 3px;
+    background: url(../images/colorswitch.png) 0px -18px no-repeat;
+}
+.customizeRangeBtnVisible {
+    background: url(../images/colorswitch.png) 0px 0px no-repeat;
+    cursor: pointer;
+    height: 18px;
+    width: 18px;    
+}
+.colorFullTable{
+    height: 170px;
+    border-collapse: collapse;
+}
+
+.colorFullTable input{
+    width: 45%;
+}
+.colorFullTable td{
+    text-align: center;
+    padding: 3px;
+
+}
+
+tr.greyTabLine{
+    background-color: gainsboro;
+}
+
+
+.colorRangeDiv{
+    height: 15px;
+    width: 15px;
+    margin-left: 10px;
+    border-radius: 10px;
+}
+.rangeOneColor{
+    background-color: #00FF00;
+}
+.rangeTwoColor{
+    background-color: #40C000;
+}
+.rangeThreeColor{
+    background-color: #808000;
+}
+.rangeFourColor{
+    background-color: #C04000;
+}
+.rangeFiveColor{
+    background-color: #FF0000;
+}
+#rangeAttributesTitle{    
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 3px;
+}
+
+input[name=slaAnalysisValue] {vertical-align:-0.3em;}
+
+.inifinityTd{
+    font-size: 15px; 
+    font-weight: bold;
+}
+.themeActiveCheckBox{
+    vertical-align: sub;
+    margin-left: 15px;    
+}
+
+
+.themeActiveState{
+    margin-bottom: 0px;
+}
+
+.dateRangeCaption{
+    margin-left: 5px;
+}
+#rangeAttributesWindow{
+    height: 230px;
+}
+
+.ui-accordion .ui-accordion-icons{
+    padding-left: 10px;
+}
+
+.ui-dialog .ui-dialog-titlebar-close{
+    outline: 0  !important;
+}
+
+.hotspotCompare{
+    display: none;
+}

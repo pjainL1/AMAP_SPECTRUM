@@ -1,0 +1,435 @@
+<%--
+    Document   : nwatch
+    Created on : 21-Oct-2010, 10:03:52 AM
+    Author     : ydumais
+--%>
+
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+
+<fmt:setBundle basename="loLocalString" />
+
+<script type="text/javascript">
+
+    var reportObj = {};
+    var reportKmsLayer = {};
+    var cancel = false;
+    var reportPlacemarkInfo = {};
+    var reportLayerControl = {};
+    var globalOpacity = 0.5;
+
+    <%-- Ref: PDFReport.Status --%>
+    reportStatus = {
+        none: "none",
+        process: "process",
+        ready: "ready"
+    };
+
+    am.initReportDisplay = function (status) {
+        if (status == reportStatus.process) {
+            $("#reportButtons").hide();
+            $("#reportProgress").show();
+            $("#reportDownload").hide();
+            updateProgress();
+        } else if (status == reportStatus.ready) {
+            $("#reportButtons").hide();
+            $("#reportProgress").hide();
+            $("#reportDownload").show();
+        }
+    };
+
+    getGoogleType = function () {
+        var googleType = "";
+
+        $("#baseLayers > input").each(function() {
+            if ($(this).is(":checked")) {
+                if ($(this).val() == "Physical") {
+                    googleType = "terrain";
+                } else if ($(this).val() == "Satellite") {
+                    googleType = "satellite";
+                } else if ($(this).val() == "Grey") {
+                    googleType = "grey";
+                } else if ($(this).val() == "Night") {
+                    googleType = "night";
+                } else {
+                    googleType = "map";
+                }
+            }
+        });
+        return googleType;
+    };
+    getTransitType = function(){
+        var transitType = "";
+        $(".dataLayersDiv input[type='checkbox']").each(function() {
+            if ($(this).is(":checked")) {
+                if ($(this).val() == "Live Traffic") {
+                    transitType = "traffic";
+                } else if($(this).val() == "Transit") {
+                    transitType = "transit";
+                } else {
+                    transitType = "bicycling";
+                }
+            }
+        });
+        return transitType;
+    }
+    getActiveLayers = function () {
+        var layers = "";
+        $('#layerController').find(".layergroup").each(function (index) {
+            $(this).find(".layergroupchk").each(function (index) {
+                if ($(this).is(":visible") && this.checked === true) {
+                    if (layers === "") {
+                        layers = layers + $(this).parents(".layerNameLine").find(".layerNameElement").contents().filter(function(){return this.nodeType == 3;})[0].nodeValue.trim();
+                    } else {
+                        layers = layers + "," + $(this).parents(".layerNameLine").find(".layerNameElement").html();
+                    }
+                }
+            });
+        });
+        return layers;
+    };
+
+    getLocationKeys = function () {
+        var locationKeys = "";
+        if ($('#locationList').val() != "") {
+            locationKeys = $('#locationList').val();
+        } else {
+            $('#locationList option').each(function () {
+                if (locationKeys == "") {
+                    locationKeys = locationKeys + $(this).val();
+                } else {
+                    locationKeys = locationKeys + "," + $(this).val();
+                }
+            });
+        }
+        return locationKeys;
+    };
+
+    getThemeLayerIDs = function () {
+        var themeLayerIds = "";
+        for (var i = 0; i < reportLayerControl.layers.length; ++i) {
+            var layer = reportLayerControl.layers[i].layer;
+            var checkbox = reportLayerControl.layers[i].checkbox;
+            if (layer.isTheme && checkbox.checked) {
+                if (themeLayerIds == "") {
+                    themeLayerIds = themeLayerIds + layer.id;
+                } else {
+                    themeLayerIds = themeLayerIds + "," + layer.id;
+                }
+            }
+        }
+        return themeLayerIds;
+
+    };
+
+    generatePDF = function (reportType) {
+        if (korem.get('reportButtons').style.display == 'none') {
+            if (korem.get('reportProgress').style.display == 'none') {
+                downloadPdf();
+            }
+            return;
+        }
+        cancel = false;
+        var mapObj = reportObj.map.map;
+
+        //get the selected rollup codes and insert the in an array 
+        var rollupCodesFilters = [];
+        if ($("#sponsorFilterContainer").css('display') != 'none') {
+            var selectedRollupFilters = $("#sponsorFilterCmb").multiselect("getChecked");
+            for (var i = 0; i < selectedRollupFilters.length; i++) {
+                rollupCodesFilters.push(selectedRollupFilters[i].title);
+            }
+        }
+
+        var data = {
+            isTaTextHidden: '',
+            methods: 'report',
+            report: '',
+            from: '',
+            to: '',
+            formatFrom: '',
+            formatTo: '',
+            locations: '',
+            datatType: '',
+            type: reportType,
+            tradearea: '',
+            taLayerId: '',
+            issuance: '',
+            distance: '',
+            projected: '',
+            longitude: '',
+            latitude: '',
+            hotspot: '',
+            density: '',
+            nwatch: '',
+            themeLayerIds: getThemeLayerIDs,
+            mapInstanceKey: reportObj.map.mapInstanceKey,
+            googleType: getGoogleType(),
+            transitType: getTransitType(),
+            zoom: mapObj.getZoom(),
+            xmin: mapObj.getExtent().transform(mapObj.projection, mapObj.displayProjection).left,
+            xmax: mapObj.getExtent().transform(mapObj.projection, mapObj.displayProjection).right,
+            ymin: mapObj.getExtent().transform(mapObj.projection, mapObj.displayProjection).bottom,
+            ymax: mapObj.getExtent().transform(mapObj.projection, mapObj.displayProjection).top,
+            centerX: mapObj.getCenter().lon,
+            centerY: mapObj.getCenter().lat,
+            width: reportKmsLayer.getImageSize().w,
+            height: reportKmsLayer.getImageSize().h,
+            locationKeys: getLocationKeys(),
+            layers: getActiveLayers(),
+            opacity: globalOpacity,
+            rollupCodesFilters: JSON.stringify(rollupCodesFilters)
+        };
+        
+        data.dateType = am.instance.datePickers.selectedDateType;
+
+        if (data.locationKeys == '<fmt:message key="apply.locations.makeSelection"/>') {
+            data.locationKeys = '';
+        }
+        
+        data.tradearea = "";
+        if ($("#tradeAreaChkProjected:checked").val() != null) {
+            data.tradearea += "projected,";
+            data.projected = $("#tradeAreaTxtProjected").val();
+            data.longitude = reportPlacemarkInfo.lonLat.lon;
+            data.latitude = reportPlacemarkInfo.lonLat.lat;
+        }
+        // trade area info
+        if ($("#tradeAreaChkIssuance:checked").val() != null) {
+            data.tradearea += "issuance,";
+            data.issuance = $("#tradeAreaSelectIssuance").val();
+        } else if ($("#tradeAreaChkUnits:checked").val() != null) {
+            data.tradearea += "units,";
+            data.issuance = $("#tradeAreaSelectUnits").val();
+        }
+        else {
+            data.issuance = -1;
+        }
+        if ($("#tradeAreaChkDistance:checked").val() != null) {
+            data.tradearea += "distance,";
+            data.distance = $("#tradeAreaTxtDistance").val();
+        } else {
+            data.distance = -1;
+        }
+        if ($("#tradeAreaChkCustom:checked").val() != null) {
+            data.tradearea += "custom,";
+            data.polygon = am.instance.customTradeArea.getJSONPolygon();
+        }
+        data.tradearea = data.tradearea.substring(0, data.tradearea.length - 1);
+        
+        //hot spot info
+        if(am.instance.hotSpot.selectedCheckbox){
+            data.hotspot = am.instance.hotSpot.selectedCheckbox.value;
+            if(data.dateType=="single"){
+                data.dataType = $("input:radio[name='hotSpotRadioSingle']:checked").val();
+            }else{
+                data.dataType = $("input:radio[name='hotSpotCompareRadio']:checked").val();
+                data.hotspotComparisonType = $("#comparisonType").val();
+            }
+        }
+
+        // timeframe info
+        data.to = $("#toPicker").val();
+        data.from = $("#fromPicker").val();
+        data.compareTo = $("#comparisonToPicker").val();
+        data.compareFrom = $("#comparisonFromPicker").val();
+        data.formatTo = formatDate($("#toPicker"));
+        data.formatFrom = formatDate($("#fromPicker"));
+
+        //Minimum values info 
+        data.minTransactions = $("#minTrans").val();
+        data.minSpend = $("#minSpend").val();
+        data.minUnit = $("#minUnit").val();
+
+        // report info
+        if ($("#reportChkDistanceDecay:checked").val() != null) {
+            data.report = "decay";
+        }
+        if ($("#reportChkLocationSummary:checked").val() != null) {
+            data.report = "summary";
+        }
+        if ($("#reportChkLocationSummary:checked").val() != null && $("#reportChkDistanceDecay:checked").val() != null) {
+            data.report = "both";
+        }
+
+        //store level analysis
+        var checkboxes = $('input[name=slaAnalysisValue]');
+        checkboxes.each(function () {
+            if ($(this).is(":checked")) {
+                data.slaTransactionValue = $(this).val();
+                data.dateType = am.instance.datePickers.selectedDateType;
+            }
+        });
+
+        var inCompareMode = am.instance.mapsManager.inCompareMode;
+        if (inCompareMode) {
+            // var visibility = korem.get('tradeAreaInfoContainer2');
+            var visibility = korem.get('tradeAreaInfoContainer2').style.visibility;
+            if (visibility == "visible") {
+                data.isTaTextHidden = 'false';
+            } else {
+                data.isTaTextHidden = 'true';
+            }
+        } else {
+            // We are NOT in compare mode
+            var visibility = korem.get('tradeAreaInfoContainer1').style.visibility;
+            if (visibility == "visible") {
+                data.isTaTextHidden = 'false';
+            } else {
+                data.isTaTextHidden = 'true';
+            }
+        }
+
+        $.ajax({
+            url: '../apply.safe',
+            context: this,
+            type: 'post',
+            data: data,
+            success: function (json) {
+                $("#reportButtons").hide();
+                $("#reportProgress").show();
+                $("#reportDownload").hide();
+                updateProgress();
+                if (json.invalid) {
+                    window.location = 'expired.do';
+                    document.location = 'expired.do';
+                    window.alert('alert raised');
+                }
+            }
+        });
+    }
+
+    EnableDisableBtns = function () {
+        var selectedLocation = getLocationKeys();
+        if (jQuery.trim($("#applyBtnCenter").html()) == "Apply" /*&& selectedLocation != "Please make a selection"*/) {
+            if ($("#reportChkDistanceDecay:checked").val() == null
+                    && $("#reportChkLocationSummary:checked").val() == null) {
+//                $("#reportBtn").attr('disabled', true);
+                $("#batchBtn").attr('disabled', true);
+            } else {
+//                $("#reportBtn").removeAttr('disabled');
+                $("#batchBtn").removeAttr('disabled');
+            }
+        } else {
+//            $("#reportBtn").attr('disabled', true);
+            $("#batchBtn").attr('disabled', true);
+        }
+    }
+
+    EnableDisableLocSummary = function () {
+        if ($("#tradeAreaChkDistance:checked").val() == null &&
+                $("#tradeAreaChkIssuance:checked").val() == null &&
+                $("#tradeAreaChkProjected:checked").val() == null &&
+                $("#tradeAreaChkCustom:checked").val() == null &&
+                $("#tradeAreaChkUnits:checked").val() == null) {
+            $("#reportChkLocationSummary").attr('disabled', true);
+            $("#reportChkLocationSummary").attr('checked', false);
+        } else {
+            $("#reportChkLocationSummary").removeAttr('disabled');
+        }
+    }
+
+    updateProgress = function () {
+        cancel = false;
+        var data = {
+            methods: 'report'
+        };
+        $.ajax({
+            url: '../getProgress.safe',
+            context: this,
+            data: data,
+            type: 'post',
+            success: function (returnData) {
+                if (cancel) {
+                    return;
+                }
+                var progressBar;
+                progressBar = $("#reportProgressBar").progressbar();
+                progressBar.progressbar('option', 'value', returnData.progress);
+                if (returnData.progress < 100) {
+                    this.updateProgress();
+                } else {
+                    $("#reportButtons").hide();
+                    $("#reportProgress").hide();
+                    $("#reportDownload").show();
+                }
+            }
+        });
+    }
+
+    cancelPdf = function () {
+        var data = {
+            methods: 'report'
+        };
+        cancel = true;
+        $.ajax({
+            url: '../cancelProgress.safe',
+            context: this,
+            data: data,
+            type: 'post',
+            success: function (returnData) {
+                initButtons();
+            }
+        });
+    }
+
+    downloadPdf = function () {
+        initButtons();
+        window.location = 'DownloadPDF.do';
+    }
+
+    donePdf = function () {
+        cancelPdf();
+    }
+
+    initButtons = function () {
+        $("#reportButtons").show();
+        $("#reportProgress").hide();
+        $("#reportDownload").hide();
+        //        $('#reportChkDistanceDecay').checked = false;
+        //        $('#reportChkLocationSummary').checked = false;
+    }
+
+    formatDate = function (el) {
+        return $.datepicker.formatDate('yymmdd', $(el).datepicker('getDate'));
+    }
+
+</script>
+<table class="fullTable tradeAreaTable">
+    <tr>
+        <td>
+            <input id="reportChkDistanceDecay" value="decay" type="checkbox" /><label for="reportChkDistanceDecay"><fmt:message key="report.menu.decay" /></label>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input id="reportChkLocationSummary" value="summary" type="checkbox" disabled="disabled" /><label for="reportChkLocationSummary"><fmt:message key="report.menu.summary" /></label>
+        </td>
+    </tr>
+    <tr id="reportButtons">
+        <td style="padding-top: 40px" >
+            <input id="reportBtn" value="<fmt:message key="report.menu.report" />" onclick="generatePDF('report')" type="button" />
+            <input id="batchBtn" value="<fmt:message key="report.menu.batch" />" onclick="generatePDF('batch')" type="button" disabled="disabled" />
+        </td>
+    </tr>
+    <tr id="reportProgress" style="display:none" >
+        <td style="padding-top: 40px" >
+            <table class="fullTable">
+                <tr>
+                    <td style="width:100%"><div id="reportProgressBar" /></td>
+                    <td style="text-align:right" ><input id="cancelBtn" onclick="cancelPdf()" value="<fmt:message key="report.menu.cancel" />" type="button" /></td>
+                </tr>
+            </table>
+        </td>
+
+    </tr>
+    <tr id="reportDownload" style="display:none" >
+        <td style="padding-top: 40px" >
+            <input id="downloadBtn" value="<fmt:message key="report.menu.download" />" onclick="downloadPdf()" type="button" />
+            <input id="doneBtn" value="<fmt:message key="report.menu.done" />" onclick="donePdf()" type="button" />
+        </td>
+    </tr>
+
+</table>
+
+<div id="reportDescBtn"><!-- stuff --></div>

@@ -1,0 +1,27 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Jan 27, 2014, 3:38:18 PM
+    Author     : rarif
+*/
+
+.x-color-picker, .x-color-picker {
+  height: 195px;
+  position: relative;
+  overflow: hidden;
+}
+.x-color-picker div canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+}
+.x-color-picker-wheel {
+  z-index: 1;
+}
+.x-color-picker-gradient  {
+  z-index: 0;
+}
