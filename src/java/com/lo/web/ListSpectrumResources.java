@@ -21,8 +21,8 @@ import com.spinn3r.log5j.Logger;
  */
 public class ListSpectrumResources {
     private static final Logger log = Logger.getLogger();
-//public static void main(String[] args) {
-	    public ListSpectrumResources() {
+public static void main(String[] args) {
+	    //public ListSpectrumResources() {
             try {
 	            //create an client interface to the NamedResource service.
 	            NamedResourceServiceInterface serviceInterface = Preference.getServiceInterface();
@@ -50,7 +50,7 @@ public class ListSpectrumResources {
 		ListNamedResourceRequest ListNamedResourceRequest = new ListNamedResourceRequest();
 		ListNamedResourceRequest.setId("List123");
 		ListNamedResourceRequest.setPath("/Samples");
-                ListNamedResourceRequest.setResourceType(ResourceType.NAMED_MAP_AND_VIEW);
+                ListNamedResourceRequest.setResourceType(ResourceType.NAMED_TILE);
 		return ListNamedResourceRequest;		
 	}
 }
