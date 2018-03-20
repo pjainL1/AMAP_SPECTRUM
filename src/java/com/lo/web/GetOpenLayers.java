@@ -4,11 +4,15 @@ import com.korem.IWMSParams;
 import com.korem.invocationThrottling.AbstractMethod;
 import com.korem.invocationThrottling.Throttler;
 import com.korem.openlayers.IMapProvider;
+import com.korem.openlayers.kms.MapProvider;
 import com.korem.openlayers.kms.MapProviderFactory;
 import com.korem.openlayers.parameters.IBoundsParameters;
 import com.korem.openlayers.parameters.IImageParameters;
 import com.korem.requestHelpers.PlainGenericServlet;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.logging.Level;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -27,6 +31,7 @@ public class GetOpenLayers extends PlainGenericServlet<IWMSParams> {
 
     @Override
     protected void execute(final HttpServletRequest request, final HttpServletResponse response, final IWMSParams params) throws Exception {
+        
         final IMapProvider mapProvider = getMapProvider();
         final IImageParameters imageParams = createImageParameters(params);
         final IBoundsParameters boundsParams = createBoundsParameters(params);
@@ -79,6 +84,20 @@ public class GetOpenLayers extends PlainGenericServlet<IWMSParams> {
             return false;
         }
     }
+//    
+//        private byte[] spectrumImage(){
+//    
+//        SpectrumRenderTile srt = new SpectrumRenderTile() ;
+//        srt.createImageFromTiles();
+//        try {
+//            BufferedImage img = srt.getMergedTiles();
+//            
+//        } catch (ServletException ex) {
+//            java.util.logging.Logger.getLogger(MapProvider.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        
+//        return null;
+//    }
 
     private void saveImage(byte[] image, HttpSession session) {
         session.setAttribute(SES_IMAGE, image);

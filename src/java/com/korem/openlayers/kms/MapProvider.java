@@ -26,7 +26,9 @@ import com.lo.config.Confs;
 import com.lo.layer.LocationLayerUtils;
 import com.lo.util.WSClient;
 import com.lo.util.WSClientLone;
+import com.lo.web.SpectrumRenderTile;
 import com.spinn3r.log5j.Logger;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -37,6 +39,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
@@ -72,8 +76,11 @@ public class MapProvider implements IMapProvider {
     }
 
     @Override
-    public byte[] getImage(String mapInstanceKey, String format, int width, int height) throws RemoteException {
+    public byte[] getImage(String mapInstanceKey, String format, int width, int height) throws RemoteException, ServletException, IOException {
         return WSClient.getMapService().getImage(mapInstanceKey, format, width, height);
+       // SpectrumRenderTile tile = new SpectrumRenderTile();
+        //return tile.createImageFromTiles();
+        
     }
 
     @Override
@@ -100,6 +107,7 @@ public class MapProvider implements IMapProvider {
             log.error(null, e);
         }
     }
+    
 
     @Override
     public void setDeviceBounds(IDeviceBoundsParameters parameters) throws RemoteException {
