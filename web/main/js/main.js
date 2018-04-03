@@ -217,7 +217,7 @@ am.Main.prototype = {
                 that.datePickers.hideSlaves();
             },
             onZoomChanged: function() {
-                that.layerControl.zoomChanged();
+                //that.layerControl.zoomChanged();
             },
             setStyledMap: function() {
                 // apply default style on the google map object
