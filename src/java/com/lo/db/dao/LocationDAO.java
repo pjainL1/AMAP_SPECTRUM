@@ -135,6 +135,89 @@ public class LocationDAO {
         }
         return colorCode;
     }
+    
+    public String getSpecTradeAreaColorLocation(String mapInstanceKey) {
+        String colorCodes = "";
+        final List<String> locationWithColor = new ArrayList<String>();
+        try {
+            ResultSetHandler<String> handler = new ResultSetHandler<String>() {
+                @Override
+                public String handle(ResultSet rs) throws SQLException {
+                    while (rs.next()){
+                        
+                    String colorCode = rs.getString("SPONSOR_LOCATION_KEY") + "~#" + rs.getString("TA_COLOR"); // to create locationcode and color code string e.g 862~#FF0000
+                    locationWithColor.add(colorCode);
+                    }
+                    String listString = String.join(",", locationWithColor);
+                    return listString;
+                }
+            };
+            colorCodes = dao.getLoneRunner().query(Confs.QUERIES.spectradeareaLocationGetColor(), handler, mapInstanceKey);
+
+        } catch (SQLException ex) {
+            dao.log("An error occured retreiving a Spectrum Trade Area color  from db.", ex.getMessage());
+        }
+        return colorCodes;
+    }
+    
+    public Integer insertTradeAreaPolygon(String mapInstanceKeySpec,List<TradeArea> ta,int[] mipk) throws SQLException{
+        String insertTradeAreaQuery = Confs.QUERIES.tradeareaInsertPolygon();
+        Integer numberOfRecords = 0;
+        Connection conn = null;
+        //int[] mipk = generateFakeIds(ta.size());
+        //LocationDAO dao = new LocationDAO(new AirMilesDAO());
+        int i = 0;
+        try {
+            STRUCT struct;
+            
+            OraReaderWriterHelper oraWriter = OraReaderWriterHelper.getInstance();
+
+            for (TradeArea elt : ta) {
+                
+
+                struct = oraWriter.getOracleGeometry(elt.getGeometry());
+
+                dao.getLoneRunner().update(insertTradeAreaQuery, mapInstanceKeySpec,struct,mipk[i],elt.getLocationKey());
+                i = i + 1;
+            }
+            numberOfRecords = i;
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a Trade Area to LIM_TA_POLYGON.", ex.getMessage());
+        } 
+        return numberOfRecords;
+    }
+    
+    public Boolean truncateTradeAreaPolygon() throws SQLException{
+        String truncateTradeAreaQuery = Confs.QUERIES.tradeareaTruncatePolygon();
+        Boolean truncateStatus;
+        //int[] mipk = generateFakeIds(ta.size());
+        //LocationDAO dao = new LocationDAO(new AirMilesDAO());
+
+        try {
+                 dao.getLoneRunner().update(truncateTradeAreaQuery);
+                 truncateStatus = true;
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a Trade Area to LIM_TA_POLYGON.", ex.getMessage());
+            truncateStatus = false;
+        } 
+        return truncateStatus;
+    }
+    
+    public Integer deleteTradeAreaPolygon(String mapInstanceKeySpec) throws SQLException{
+        String deleteTradeAreaQuery = Confs.QUERIES.tradeareaDeletePolygon();
+        Integer numberOfRecords = 0;
+        Connection conn = null;
+        //int[] mipk = generateFakeIds(ta.size());
+        //LocationDAO dao = new LocationDAO(new AirMilesDAO());
+
+        try {
+                 numberOfRecords = dao.getLoneRunner().update(deleteTradeAreaQuery, mapInstanceKeySpec);
+            
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a Trade Area to LIM_TA_POLYGON.", ex.getMessage());
+        } 
+        return numberOfRecords;
+    }
 
     public Integer insertToHistoryTable(List<TradeArea> ta, ContextParams params, String from, String to, String bounds, String sponsorLocation, TradeAreaMethod.IParams ip) throws ParseException, SQLException {
         String insertToHistory = Confs.CONSOLE_QUERIES.taHistoryInsert();
@@ -196,11 +279,12 @@ public class LocationDAO {
             }
         } catch (SQLException ex) {
             dao.log("An error occured inserting a Trade Area to TA_HISTORY.", ex.getMessage());
-        } finally {
-            if (conn != null) {
-                conn.close();
-            }
-        }
+        } 
+        //finally {
+//            if (conn != null) {
+//                conn.close();
+//            }
+//        }
         return numberOfRecords;
     }
 }
