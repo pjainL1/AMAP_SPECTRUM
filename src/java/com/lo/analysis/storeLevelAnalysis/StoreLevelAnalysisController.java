@@ -5,6 +5,7 @@ import com.lo.analysis.AnalysisControler;
 import com.lo.analysis.storeLevelAnalysis.StoreLevelAnalysisMethod.IParams;
 import com.lo.web.Apply;
 import com.spinn3r.log5j.Logger;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -24,7 +25,7 @@ public class StoreLevelAnalysisController implements AnalysisControler {
     }
 
     @Override
-    public String createLayer() {
+    public String createLayer(HttpSession session) {
         String id = "-1";
         listener.update(25);
         try {

@@ -61,7 +61,7 @@ public class StoreLevelAnalysisMethod implements Apply.IProgressAware{
             if (applyParams.slaTransactionValue() != null) {
                 StoreLevelAnalysisController controller = new StoreLevelAnalysisController(applyParams, listener, cp);
                 long time = System.currentTimeMillis();
-                controller.createLayer();
+                controller.createLayer((HttpSession) ((Object[]) params)[1]);
                 log.debug("time to create SLA: "+(System.currentTimeMillis()-time));
                 LoggingUtil.log(cp.getUser(), cp.getSponsor(), LoggingUtil.getStoreLevelAnalysisMessage(applyParams));
             } else if(idsThemes!=null&&idsThemes.length>0){

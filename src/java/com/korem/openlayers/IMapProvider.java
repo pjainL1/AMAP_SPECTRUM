@@ -18,6 +18,7 @@ import com.korem.openlayers.parameters.ISelectByAttributesParameters;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -26,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface IMapProvider extends Serializable {
 
-    void init(IInitParameters parameters) throws Exception;
+    void init(IInitParameters parameters, HttpServletRequest request) throws Exception;
 
     
     String getKeyFromWorspaceName(String workspaceName) throws Exception;
@@ -35,7 +36,7 @@ public interface IMapProvider extends Serializable {
 
     void writeImage(IImageParameters parameters, HttpServletResponse response) throws Exception;
 
-    byte[] getImage(String mapInstanceKey, String format, int width, int height) throws Exception;
+    byte[] getImage(String mapInstanceKey,IBoundsParameters boundsParams,HttpServletRequest request, String format, int width, int height) throws Exception;
 
     Bounds getBounds(IBaseParameters parameters) throws Exception;
 
@@ -68,9 +69,9 @@ public interface IMapProvider extends Serializable {
 
     void viewEntireLayer(IBaseParameters parameters) throws Exception;
 
-    Collection<Layer> getLayers(IBaseParameters parameters, IFilter filter) throws Exception;
+    Collection<Layer> getLayers(IBaseParameters parameters, IFilter filter, HttpServletRequest request) throws Exception;
 
-    void setLayerVisibility(ILayerVisibilityParameters params) throws Exception;
+    void setLayerVisibility(ILayerVisibilityParameters params,HttpServletRequest request) throws Exception;
 
     boolean isLabelOnly(String layerId) throws Exception;
 

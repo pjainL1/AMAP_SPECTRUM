@@ -10,8 +10,10 @@ import com.korem.openlayers.parameters.IBoundsParameters;
 import com.korem.openlayers.parameters.IImageParameters;
 import com.korem.requestHelpers.PlainGenericServlet;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
+import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,8 +42,9 @@ public class GetOpenLayers extends PlainGenericServlet<IWMSParams> {
             protected Object doInvoke() {
                 try {
                     mapProvider.setBounds(boundsParams);
-                    byte[] image = mapProvider.getImage(imageParams.mapInstanceKey(),
-                            imageParams.format(), imageParams.width(), imageParams.height());
+                    byte[] image = mapProvider.getImage(imageParams.mapInstanceKey(),boundsParams,request, imageParams.format(), imageParams.width(), imageParams.height());
+                    
+                    //byte[] image = getTransparentTile();
                     if (writeImage(image, response, params)) {
                         saveImage(image, request.getSession());
                     }
@@ -72,6 +75,25 @@ public class GetOpenLayers extends PlainGenericServlet<IWMSParams> {
         byte[] image = (byte[])session.getAttribute(SES_IMAGE);
         if (image != null) {
             writeImage(image, response, params);
+        }
+    }
+    
+    private byte[] getTransparentTile() {
+        try {
+            BufferedImage finalTile = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+
+            byte[] imageInByte = null;
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(finalTile, "png", baos);
+            baos.flush();
+            imageInByte = baos.toByteArray();
+            baos.close();
+
+            return imageInByte;
+        } catch (Exception e) {
+            //LOGGER.error("Error while getting Empty tile", e);
+            return null;
         }
     }
 

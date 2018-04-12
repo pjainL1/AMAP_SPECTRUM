@@ -30,7 +30,9 @@ public class SetSelection extends GenericServlet<SetSelection.IParams> {
         parameters.setLayerName(Analysis.LOCATIONS.toString());
         mapProvider.setSelection(parameters, params.append());
         SelectionReplicator selectionUtils = new SelectionReplicator(ContextParams.get(req.getSession()));
-        return selectionUtils.createResult(mapProvider, parameters);
+        String result = "[[\"182135.0\",\"0074\",\"0074\",\"PARK WEST\",\"MLCC\",\"WINNIPEG\",\"R3R2P9\",\"666.666\"],[\"734.0\",\"0008\",\"0008\",\"Portage & Ainslie\",\"MLCC\",\"WINNIPEG\",\"R3J0P1\",\"666.666\"],[\"1109.0\",\"0054\",\"0054\",\"Crestview Shop. Ctr\",\"MLCC\",\"WINNIPEG\",\"R3K2G7\",\"666.666\"],[\"862.0\",\"0026\",\"0026\",\"Charleswood\",\"MLCC\",\"WINNIPEG\",\"R3R3C2\",\"666.666\"]]" ;
+        //return selectionUtils.createResult(mapProvider, parameters);
+        return result;
     }
 
     private IPixelSelectionParameters createParameters(final IParams params) {

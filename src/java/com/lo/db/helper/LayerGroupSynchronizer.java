@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -34,10 +36,10 @@ public class LayerGroupSynchronizer{
         return instance;
     }
     
-    public long doSynchronize(final IMapProvider mp, final String mapInstanceKey, final String sponsorName, final LayerGroupProxy proxy){
+    public long doSynchronize(final IMapProvider mp, final String mapInstanceKey, final String sponsorName, final LayerGroupProxy proxy,HttpServletRequest request){
         long duration = System.currentTimeMillis();
         try{
-            List<String> kmsLayers = getKmsLayers(mp, mapInstanceKey);
+            List<String> kmsLayers = getKmsLayers(mp, mapInstanceKey, request);
             if (kmsLayers.isEmpty()){
                 proxy.flushLayer(sponsorName);
             }else{
@@ -55,11 +57,11 @@ public class LayerGroupSynchronizer{
         return duration;
     }
     
-    private List<String> getKmsLayers(final IMapProvider mp, final String mapInstanceKey) throws Exception{
+    private List<String> getKmsLayers(final IMapProvider mp, final String mapInstanceKey, HttpServletRequest request) throws Exception{
         List<String> kmsLayers = new ArrayList();
         Collection<Layer> layers = mp.getLayers(new IBaseParameters() {
             @Override public String mapInstanceKey() { return mapInstanceKey; }
-        }, LayerGroupSynchronizer.LAYER_FILTER);
+        }, LayerGroupSynchronizer.LAYER_FILTER, request);
         for(Layer layer : layers){
             kmsLayers.add(layer.getName());
         }

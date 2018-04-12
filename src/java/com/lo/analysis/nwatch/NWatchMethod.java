@@ -53,7 +53,7 @@ public class NWatchMethod implements IProgressAware {
             listener.update(100);
         } else {
             NWatchController controller = new NWatchController(applyParams, listener, cp);
-            controller.createLayer();
+            controller.createLayer((HttpSession) ((Object[]) params)[1]);
             LoggingUtil.log(cp.getUser(), cp.getSponsor(), LoggingUtil.getNWMessage((IParams) ((Object[]) params)[0]));
 
             // save list of selected locations

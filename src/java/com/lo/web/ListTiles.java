@@ -22,22 +22,40 @@ public class ListTiles {
 
     private static final Logger log = Logger.getLogger();
 //public static void main(String[] args) {
-  
+    private ListNamedResourceResponse resp = null;
+    
+    private static volatile ListTiles s;
 
     private ListTiles() {
-
+        
+        resp = retriveTiles();
 
     }
     
-    private static class Holder {
-       private static final ListTiles INSTANCE = new ListTiles();
-    }
-
-    public static ListTiles getInstance() {
-        return Holder.INSTANCE;
+    public ListNamedResourceResponse getResp(){
+        return resp;
     }
     
-    public ListNamedResourceResponse retriveTiles(){
+   
+    
+     public static ListTiles getInstance(){
+
+        if (s != null ) return s;
+
+         synchronized(ListTiles.class){
+
+          if (s == null ) {
+
+           s = new ListTiles();
+          }
+       }
+
+       return s;
+
+     }
+     
+     
+    private ListNamedResourceResponse retriveTiles(){
     
         ListNamedResourceResponse response = null;
         try {

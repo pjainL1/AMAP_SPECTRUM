@@ -5,8 +5,12 @@
  */
 package com.lo.web;
 
+import com.korem.openlayers.kms.Layer;
+import com.mapinfo.midev.service.namedresource.v1.NamedResource;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,13 +37,33 @@ public class GetTileSpectrum extends HttpServlet {
             String level = request.getParameter("z");
             String x = request.getParameter("x");
             String y = request.getParameter("y");
-            System.out.println("z = " + level + ",x = " + x + ",y = " + y);
             
-
+//            int nVisibleLayers = 0;
+//            ArrayList<Layer> layerWithVisiblity = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
+//            for (Layer layer : layerWithVisiblity) {
+//               if(layer.getVisibility() == true){
+//                    System.out.println("z = " + level + ",x = " + x + ",y = " + y);
+//                    nVisibleLayers = nVisibleLayers + 1;
+//                }
+//                }
+//            
+            //if (nVisibleLayers > 0){
             SpectrumRenderTile tile = SpectrumRenderTile.getInstance();
-            byte[] image = tile.createImageFromTiles(level,x,y);
+            byte[] image = tile.createImageFromTiles(level,x,y,request);
+            
+            ArrayList<Layer> layers = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
+            
+            for (Layer layer : layers) {
+                System.out.println(layer.getName()+' ' + layer.getVisibility());
+            }
+            System.out.println("Image Length " + image.length);
+            
+            //if (image.length > 0)
+            //{
             response.setContentType("image/png");
             response.getOutputStream().write(image);
+            //}
+           // }
             //System.out.println("image Response" + response.getStatus());
         } catch (IOException ioe) {
             System.out.println(ioe);

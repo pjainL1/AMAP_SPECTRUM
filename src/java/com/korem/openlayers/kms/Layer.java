@@ -2,6 +2,7 @@ package com.korem.openlayers.kms;
 
 import com.korem.XMLHelper;
 import com.lo.db.proxy.LayerGroupProxy.LayerGroupDTO;
+import com.mapinfo.midev.service.namedresource.v1.NamedResource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,10 +45,11 @@ public class Layer {
 
     private String id;
     private String name;
+    private String path;
     private boolean isTheme;
     private boolean visibility;
     private boolean zoomVisibility;
-    private final String parent;
+    private  String parent;
     private List<String> labelDisplays = new ArrayList<>();
     private List<String> labelFields = new ArrayList<>();
 
@@ -60,6 +62,18 @@ public class Layer {
         isTheme = Boolean.parseBoolean(layer.getAttribute(A_ISTHEME));
         visibility = Boolean.parseBoolean(XMLHelper.get().getString(layer, XPATH_VISIBILITY));
         setZoomVisibility(layer, zoomLevel);
+    }
+    
+    Layer(NamedResource layer) throws Exception {
+        id = layer.toString();
+        path = layer.getPath();
+        name = path.substring(path.lastIndexOf('/') + 1).trim();
+        
+        parent = "0";
+        visibility = false;
+        isTheme = false;
+        //layer.toString();
+        //setZoomVisibility((Element) layer, zoomLevel);
     }
 
     private void setZoomVisibility(Element layer, double zoomLevel) throws XPathExpressionException {
@@ -78,6 +92,18 @@ public class Layer {
 
     public String getId() {
         return id;
+    }
+    
+    public String getPath() {
+        return path;
+    }
+    
+    public Boolean getVisibility() {
+        return visibility;
+    }
+    
+    public void setVisibility(Boolean visible) {
+        this.visibility = visible;
     }
 
     public String getName() {
@@ -120,7 +146,8 @@ public class Layer {
     }
 
     private String getDisplayName() {
-        return removeSuffix(name);
+        //return removeSuffix(name);
+        return name;
     }
 
     public static String removeSuffix(String name) {

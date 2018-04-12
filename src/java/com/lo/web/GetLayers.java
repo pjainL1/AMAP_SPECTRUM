@@ -30,11 +30,13 @@ public class GetLayers extends GenericServlet<IBaseParameters> {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
         Map<String, LayerGroupDTO> layerGroups;
         try(LayerGroupProxy proxy = new LayerGroupProxy()){
-            LayerGroupSynchronizer.getInstance().doSynchronize(mapProvider, params.mapInstanceKey(), cp.getSponsor().getRollupGroupCode(), proxy);
+            LayerGroupSynchronizer.getInstance().doSynchronize(mapProvider, params.mapInstanceKey(), cp.getSponsor().getRollupGroupCode(), proxy, request);
             layerGroups = proxy.getLayerGroupsMap(cp.getSponsor().getRollupGroupCode());
         }
-        return toJSON(mapProvider.getLayers(params, LAYER_FILTER), layerGroups);
+        return toJSON(mapProvider.getLayers(params, LAYER_FILTER, request), layerGroups);
     }
+    
+    
 
     private String toJSON(Collection<Layer> layers, Map<String, LayerGroupDTO> layerGroups) {
         JSONBuilder layersAsJSON = new JSONStringer().array();

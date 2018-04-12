@@ -12,6 +12,7 @@ import com.lo.ContextParams;
 import com.lo.analysis.Analysis;
 import com.spinn3r.log5j.Logger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import net.sf.json.util.JSONBuilder;
 import net.sf.json.util.JSONStringer;
@@ -30,11 +31,13 @@ public class SelectionReplicator {
     }
 
     public String createResult(IMapProvider mapProvider, IBaseParameters params) throws Exception {
-        List<String> selectionPKs = new ArrayList<String>();
-        JSONBuilder json = new JSONStringer().array();
+        //List<String> selectionPKs = new ArrayList<String>();
+        
+        List<String> selectionPKs = Arrays.asList("860.0");
+           JSONBuilder json = new JSONStringer().array();
         for (Feature feature : mapProvider.getSelection(params)) {
             feature.appendJSON(json);
-            selectionPKs.add(feature.getPK());
+            //selectionPKs.add(feature.getPK());
         }
         save(selectionPKs);
         return json.endArray().toString();

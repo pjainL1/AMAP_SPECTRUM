@@ -6,6 +6,7 @@ import com.lo.analysis.AnalysisControler;
 import com.lo.analysis.nwatch.NWatchMethod.IParams;
 import com.lo.web.Apply.ProgressListener;
 import com.spinn3r.log5j.Logger;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -25,7 +26,7 @@ public class NWatchController implements AnalysisControler {
     }
 
     @Override
-    public String createLayer() {
+    public String createLayer(HttpSession session) {
         String id = "-1";
         listener.update(25);
         try {

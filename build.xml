@@ -54,10 +54,10 @@
     
     <target name="_import test library" description="import">
         <copy todir="web/WEB-INF/lib" verbose="true" overwrite="true">
-            <fileset dir="${libraryPath}/java/httpcomponents-client-4.2.5/lib">
-                <include name="httpclient-4.2.5.jar"/>
-                <include name="httpcore-4.2.4.jar"/>
-            </fileset>
+            <fileset dir="${libraryPath}/java/httpcomponents-client-4.3.3/lib">
+                <include name="httpclient-4.3.3.jar"/>
+                <include name="httpcore-4.3.3.jar"/>
+            </fileset> 
         </copy>
     </target>
         

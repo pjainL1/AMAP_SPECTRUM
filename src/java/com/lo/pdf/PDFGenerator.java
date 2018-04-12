@@ -1401,7 +1401,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
         }
 
         TradeAreaControler controler = new TradeAreaControler(new String[]{type.name()}, taParams, null, contextParams, selectedSponsorGroup);
-        String tempLayerId = controler.createLayer();
+        String tempLayerId = controler.createLayer(session);
         Geometry geom = controler.getTradeAreas().get(0).getGeometry();
 
         insertNewChapter(landscape);
@@ -1607,7 +1607,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
 
     private void duplicateMapSessionWithTradeArea(String[] excludedLayers) throws RemoteException {
         mapInstanceKey = WSClientLone.getMappingSessionService().duplicateMapSession(reportParams.mapInstanceKey(), excludedLayers);
-        MapProvider.initWorkspaceProperties(mapInstanceKey);
+       // MapProvider.initWorkspaceProperties(mapInstanceKey);
     }
 
     private void duplicateHotSpotFactory() {
@@ -1623,7 +1623,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
             WSClient.getLayerService().setVisible(reportParams.mapInstanceKey(), layerId, false);
         }
         mapInstanceKey = WSClientLone.getMappingSessionService().duplicateMapSession(reportParams.mapInstanceKey(), excludedLayers);
-        MapProvider.initWorkspaceProperties(mapInstanceKey);
+        //MapProvider.initWorkspaceProperties(mapInstanceKey);
         for (String layerId : layerIds) {
             WSClient.getLayerService().setVisible(reportParams.mapInstanceKey(), layerId, true);
         }
@@ -1690,7 +1690,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
             }
             taParams = this.toTradeAreaParams(locationKey + ",", locationCode + ",", "" + System.currentTimeMillis());
             AnalysisControler controler = new TradeAreaControler(new String[]{ta}, taParams, null, null, selectedSponsorGroup);
-            previousLayerId = controler.createLayer();
+            previousLayerId = controler.createLayer(session);
             if (previousLayerId != null) {
                 WSClient.getLayerService().viewEntireLayer(mapInstanceKey, Integer.parseInt(previousLayerId));
                 if (Math.abs(1.0 - BATCH_ZOOM_MODIFIER) > 0.001) {

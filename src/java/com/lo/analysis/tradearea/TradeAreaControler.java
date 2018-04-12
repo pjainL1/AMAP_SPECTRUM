@@ -5,20 +5,32 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.lo.ContextParams;
 import com.lo.analysis.Analysis;
 import com.lo.analysis.AnalysisControler;
+import com.lo.analysis.SpectrumLayer;
 import com.lo.analysis.tradearea.TradeAreaMethod.IParams;
+import com.lo.analysis.tradearea.builder.CustomTABuilder;
 import com.lo.analysis.tradearea.builder.TABuilder;
+import com.lo.config.Confs;
 import com.lo.db.dao.AirMilesDAO;
 import com.lo.db.dao.LocationDAO;
+import com.lo.db.helper.OraReaderWriterHelper;
 import com.lo.db.om.SponsorGroup;
 import com.lo.layer.PostalCodeLayerManager;
+import com.lo.util.StyleUtils;
 import com.lo.util.WSClientLone;
 import com.lo.web.Apply.ProgressListener;
 import com.spinn3r.log5j.Logger;
 import java.rmi.RemoteException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
+import javax.servlet.http.HttpSession;
+import oracle.sql.STRUCT;
 
 /**
  *
@@ -46,6 +58,7 @@ public class TradeAreaControler implements AnalysisControler {
         this.contextParams = contextParams;
         this.sponsorGroup = sponsorGroup;
         this.tradeAreas = new ArrayList<>();
+        
     }
 
     public List<TradeArea> getTradeAreas() {
@@ -54,9 +67,9 @@ public class TradeAreaControler implements AnalysisControler {
 
     
     @Override
-    public String createLayer() {
+    public String createLayer(HttpSession session) {
         String layerID = null;
-        
+        List<SpectrumLayer> analysisLayers = new ArrayList<SpectrumLayer>();
         tradeAreas.clear();
         
         try {
@@ -68,19 +81,34 @@ public class TradeAreaControler implements AnalysisControler {
                 contextParams.setTradeAreas(tradeAreas);
             }
             
-            layerID = createAnnotationLayer(tradeAreas);
+             createAnnotationLayer(tradeAreas);
+            
+            
             
             PostalCodeLayerManager.get().createPostalCodeLayer(params.mapInstanceKey(), tradeAreas, false);
         } catch (Exception e) {
             LOGGER.error(null, e);
         }
-        
+        int[] mipk = generateFakeIds(tradeAreas.size());
         try {
             if (contextParams != null) {
                 LocationDAO locationDAO = new LocationDAO(new AirMilesDAO());
+                //Delete rows with same mapinstancekey
+                int rowsDeleted = locationDAO.deleteTradeAreaPolygon(params.mapInstanceKey());
+                LOGGER.info("No of rows deleted from LIM_TA_POLYGON : "+ rowsDeleted);
+                
+                int rowsInserted = locationDAO.insertTradeAreaPolygon(params.mapInstanceKey(),tradeAreas,mipk);
+                LOGGER.info("No of rows inserted in LIM_TA_POLYGON : "+ rowsInserted);
                 locationDAO.insertToHistoryTable(tradeAreas, 
                         this.contextParams, this.params.from(), this.params.to(), 
                         this.params.polygon(), this.params.locations(), params);
+                
+                SpectrumTradeAreaLayer specTALayer =  SpectrumTradeAreaLayer.getInstance(params.mapInstanceKey());
+                analysisLayers.add(specTALayer);
+                
+                
+                session.setAttribute("SPEC_ANALYSIS_LAYERS",analysisLayers);
+                
             }
         } catch (NumberFormatException | SQLException | ParseException ex) {
             LOGGER.error("Error inserting trade area to history table.", ex);
@@ -88,8 +116,10 @@ public class TradeAreaControler implements AnalysisControler {
         
         return layerID;
     }
+    
+    
 
-    private String createAnnotationLayer(List<TradeArea> tradeAreas) {
+    private void createAnnotationLayer(List<TradeArea> tradeAreas) {
         String layerID = null;
         if (tradeAreas.size() > 0) {
             String[] columns = {"mipk", "Location code", "location_key", "ta_type", "customer_location_code", "sponsor_code"};
@@ -107,9 +137,9 @@ public class TradeAreaControler implements AnalysisControler {
                 String rendition = getRendition(tradeArea, tradeAreas, painter);
                 renditions.add(rendition);
             }
-            layerID = createAnnotationLayer(columns, mipk, labels, points, renditions);
+           // layerID = createAnnotationLayer(columns, mipk, labels, points, renditions);
         }
-        return layerID;
+        //return layerID;
     }
 
     private String getLayerName() {

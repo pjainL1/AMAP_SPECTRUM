@@ -18,7 +18,7 @@ public class GetLayersZoomVisibility extends GenericServlet<IBaseParameters> {
     @Override
     protected String getJSON(HttpServletRequest req, IBaseParameters params) throws Exception {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
-        return toJSON(mapProvider.getLayers(params, GetLayers.LAYER_FILTER));
+        return toJSON(mapProvider.getLayers(params, GetLayers.LAYER_FILTER, req));
     }
 
     private String toJSON(Collection<Layer> layers) {

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import net.sf.json.util.JSONBuilder;
 import net.sf.json.util.JSONStringer;
 
@@ -33,14 +34,19 @@ public class GetLayerGroup extends GenericDBBoundJSONServlet<LayerGroupProxy, La
 
     @Override
     protected String getJSON(HttpServletRequest request, LayerGroupProxy proxy, LayerGroupParams params) throws Exception {
+        
+       // HttpSession session = request.getSession();
+ 
+        
+        
         if (params.sponsor() == null) {
             LOGGER.warn("GetLayerGroup.safe called with no sponsor parameter.");
             return FAILURE;
         }
         
         try {
-            String mapInstanceKey = GetMapInstanceKey.getMapInstanceKey(params.sponsor());
-            LayerGroupSynchronizer.getInstance().doSynchronize(GetOpenLayers.getMapProvider(), mapInstanceKey, params.sponsor(), proxy);
+            String mapInstanceKey = GetMapInstanceKey.getMapInstanceKey(params.sponsor(), request);
+            LayerGroupSynchronizer.getInstance().doSynchronize(GetOpenLayers.getMapProvider(), mapInstanceKey, params.sponsor(), proxy, request);
         } catch (Exception e) {
             LOGGER.error("Failed to synchronize layers", e);
         }

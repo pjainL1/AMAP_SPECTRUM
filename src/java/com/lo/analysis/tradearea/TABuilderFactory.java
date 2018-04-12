@@ -12,6 +12,7 @@ import com.lo.util.DateParser;
 import com.lo.util.LocationUtils;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -69,6 +70,9 @@ public class TABuilderFactory {
         pList.add(params.minUnit()== null ? null : params.minUnit());
         return new IssuanceTABuilder(pList.toArray(new Object[]{}), cp, sponsorGroup, 
                 LocationUtils.parseList(params.locations()) , type);
+        //List<Double> locationList = Arrays.asList(865.0, 160280.0, 733.0, 860.0, 990.0, 992.0, 730.0, 181971.0, 1111.0);
+//         return new IssuanceTABuilder(pList.toArray(new Object[]{}), cp, sponsorGroup, 
+//                locationList , type);
     }
     public static TABuilder prepareDistanceTABuilder(IParams params, ContextParams cp, SponsorGroup sponsorGroup) throws ParseException {
         List<Object> pList = new ArrayList();

@@ -9,6 +9,9 @@ package com.lo.web;
  *
  * @author pjain
  */
+import com.lo.config.Confs;
+import com.mapinfo.midev.service.mapping.ws.v1.MappingService;
+import com.mapinfo.midev.service.mapping.ws.v1.MappingServiceInterface;
 import com.mapinfo.midev.service.namedresource.ws.v1.NamedResourceService;
 import com.mapinfo.midev.service.namedresource.ws.v1.NamedResourceServiceInterface;
 
@@ -31,9 +34,13 @@ import javax.xml.ws.Service;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.soap.SOAPBinding;
 
+import java.util.ResourceBundle;
+
 public class Preference {
-    private static final String HOST = "dev-amap-lb-492711557.ca-central-1.elb.amazonaws.com";
-    private static final int PORT = 80;
+    
+    //private static ResourceBundle rbSpectrum = ResourceBundle.getBundle("com.lo.web.spectrum");
+    private static final String HOST = Confs.CONFIG.spectrumHost();
+    private static final int PORT = Integer.parseInt(Confs.CONFIG.spectrumPort());
     private static final String NAMESPACE = "http://www.mapinfo.com/midev/service/namedresource/ws/v1";
     private static final String SERVICENAME = "NamedResourceService";
     private static final String DEFAULT_SERVICENAME = "http://" + HOST + ":" + PORT + "/soap/NamedResourceService/?wsdl";
@@ -60,7 +67,8 @@ public class Preference {
 
         return serviceInterface;
     }
-
+    
+    
     public static void logout(NamedResourceServiceInterface serviceInterface) throws Exception {
         BindingProvider serviceProvider = (BindingProvider) serviceInterface;
         Map headers = (Map) serviceProvider.getRequestContext().get(MessageContext.HTTP_REQUEST_HEADERS);
@@ -70,6 +78,8 @@ public class Preference {
             tokenLogoutServiceDispatch.invoke(createTokenLogoutRequest());
         }
     }
+    
+    
 
     private static boolean headerContainsTokenAuth(Map header) {
         if (header != null) {
@@ -91,7 +101,7 @@ public class Preference {
         serviceInterface.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, password);
     }
 
-    private static void setSpectrumTokenAuthCredentials(BindingProvider serviceInterface, String userName, String password) throws IOException, SOAPException {
+    static void setSpectrumTokenAuthCredentials(BindingProvider serviceInterface, String userName, String password) throws IOException, SOAPException {
         Dispatch<SOAPMessage> dispatch = createTokenServiceDispatch(userName, password);
         SOAPMessage request = createTokenRequest();
         SOAPMessage response = dispatch.invoke(request);

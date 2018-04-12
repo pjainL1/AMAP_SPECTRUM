@@ -32,17 +32,17 @@ public class GetMapInstanceKey extends GenericJSONServlet<GetMapInstanceKey.Para
         ContextParams cp = ContextParams.get(req.getSession());
         IInitParameters initParams = createInitParams(req, new InitialDatePickers(cp.getSponsor()), cp.getSponsor());
         initLogo(initParams, cp.getSponsor());
-        InitAction.initMap(initParams);
+        InitAction.initMap(initParams, req);
         return new JSONStringer().object().
                 key("mapInstanceKey").value(initParams.mapInstanceKey()).
                 endObject().toString();
     }
     
-    public static String getMapInstanceKey(String sponsorName) {
+    public static String getMapInstanceKey(String sponsorName, HttpServletRequest request) {
         try {
             SponsorGroup sponsor = getSponsor(sponsorName);
             IInitParameters initParams = createInitParams(null, new InitialDatePickers(sponsor), sponsor);
-            InitAction.initMap(initParams);
+            InitAction.initMap(initParams, request);
             
             return initParams.mapInstanceKey();
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public class GetMapInstanceKey extends GenericJSONServlet<GetMapInstanceKey.Para
             public void setMapInstanceKey(String mapInstanceKey) {
                 this.mapInstanceKey = mapInstanceKey;
             }
-
+    
             @Override
             public String mapInstanceKey() {
                 return mapInstanceKey;
@@ -114,6 +114,8 @@ public class GetMapInstanceKey extends GenericJSONServlet<GetMapInstanceKey.Para
             public String baseUrl(){
                 return com.lo.Config.getBaseUrl(req);
             }
+            
+
 
             @Override
             public String logo() {

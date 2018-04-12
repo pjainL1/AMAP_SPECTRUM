@@ -13,6 +13,7 @@ public interface IInitParameters extends IBaseParameters {
     List<String> sponsorCodes();
 
     void setMapInstanceKey(String mapInstanceKey);
+    //void setSpecMapInstanceKey(String specMapInstanceKey);
 
     Date from();
 
@@ -21,5 +22,7 @@ public interface IInitParameters extends IBaseParameters {
     String baseUrl();
     
     String logo();
+    
+
     
 }

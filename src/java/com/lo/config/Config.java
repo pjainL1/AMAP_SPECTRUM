@@ -123,5 +123,14 @@ public interface Config {
      * @return Boolean
      */
     Boolean loadingRunDenormalizer();
+    
+    String spectrumHost();
+    
+    String spectrumUrl();
+    
+    String spectrumPort();
+    
+    String namedTableLIM_TA_PLOYGON();
+    
 
 }

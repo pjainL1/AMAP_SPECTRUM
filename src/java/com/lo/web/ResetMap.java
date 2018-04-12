@@ -17,7 +17,7 @@ public class ResetMap extends GenericServlet<IBaseParameters> {
     protected String getJSON(HttpServletRequest req, IBaseParameters params) throws Exception {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
         RemoveAnalysis.doGetJSON(req, params);
-        InitAction.initLayers(mapProvider, params);
+        InitAction.initLayers(mapProvider, params, req);
         mapProvider.setLabelVisibility(toILayerVisibilityParameters(params));
         return null;
     }

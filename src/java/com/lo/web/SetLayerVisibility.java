@@ -64,10 +64,10 @@ public class SetLayerVisibility extends GenericServlet<SetLayerVisibility.Params
            layerList.add(pa);
         }
         
-        overrideParentLayerOpacities(layerList, params);
+        //overrideParentLayerOpacities(layerList, params);
         
         for (ILayerVisibilityParameters layerElement : layerList) {
-            setLayerVisiblity(mapProvider, layerElement);
+            setLayerVisiblity(mapProvider, layerElement,req);
         }
 
         return null;
@@ -81,7 +81,8 @@ public class SetLayerVisibility extends GenericServlet<SetLayerVisibility.Params
                 boolean found = false;
                 int parent = Integer.valueOf(layerElem.parent());
                 for (final ILayerVisibilityParameters otherLayer : layerList) {
-                    if (Integer.valueOf(otherLayer.id()).equals(parent)) {
+                    //if (Integer.valueOf(otherLayer.id()).equals(parent)) {
+                    if (otherLayer.id().equals(parent)) {
                         found = true;
                        
                         ILayerVisibilityParameters newParent = new ILayerVisibilityParameters() {
@@ -125,17 +126,17 @@ public class SetLayerVisibility extends GenericServlet<SetLayerVisibility.Params
                 if (!found) {
                     // parent layer is not found within layer control (not a _CL layer).
                     // in that case, we override its opacity directly.
-                    WSClient.getLayerService().setVisible(params.mapInstanceKey(), layerElem.parent(), layerElem.visibility());
+                    //WSClient.getLayerService().setVisible(params.mapInstanceKey(), layerElem.parent(), layerElem.visibility());
                 }
             }
         }
     }
    
-    private void setLayerVisiblity(IMapProvider mapProvider, ILayerVisibilityParameters params) throws Exception {
+    private void setLayerVisiblity(IMapProvider mapProvider, ILayerVisibilityParameters params,HttpServletRequest request) throws Exception {
         if (mapProvider.isLabelOnly(params.name())) {
                 mapProvider.setLabelVisibility(params);
             } else {
-                mapProvider.setLayerVisibility(params);
+                mapProvider.setLayerVisibility(params,request);
             }
     }
 }

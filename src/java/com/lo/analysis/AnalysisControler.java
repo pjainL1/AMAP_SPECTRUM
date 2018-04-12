@@ -4,11 +4,13 @@
  */
 package com.lo.analysis;
 
+import javax.servlet.http.HttpSession;
+
 /**
  *
  * @author ydumais
  */
 public interface AnalysisControler {
 
-    public String createLayer();
+    public String createLayer(HttpSession session);
 }

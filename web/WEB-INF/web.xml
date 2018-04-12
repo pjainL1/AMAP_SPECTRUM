@@ -109,7 +109,6 @@
         <servlet-name>maxInactiveIntervalProcess</servlet-name>
         <servlet-class>com.lo.web.MaxInactiveIntervalAction</servlet-class>
     </servlet>
-
     <servlet>
         <servlet-name>com.lo.hosting.web.ScheduleWatchdogs</servlet-name>
         <servlet-class>com.lo.hosting.web.ScheduleWatchdogs</servlet-class>
@@ -122,6 +121,10 @@
             <param-name>cleanerHour</param-name>
             <param-value>14</param-value>
         </init-param>
+    </servlet>
+    <servlet>
+        <servlet-name>GetTileSpectrum</servlet-name>
+        <servlet-class>com.lo.web.GetTileSpectrum</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>getOpenLayers</servlet-name>
@@ -219,7 +222,10 @@
         <servlet-name>maxInactiveIntervalProcess</servlet-name>
         <url-pattern>/maxInactiveIntervalProcess.safe</url-pattern>
     </servlet-mapping>
-
+    <servlet-mapping>
+        <servlet-name>GetTileSpectrum</servlet-name>
+        <url-pattern>/getTileSpectrum.safe</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             60

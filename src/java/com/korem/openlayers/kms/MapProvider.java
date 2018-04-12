@@ -22,26 +22,39 @@ import com.korem.openlayers.parameters.IPixelSelectionParameters;
 import com.korem.openlayers.parameters.IPositionParameters;
 import com.korem.openlayers.parameters.ISelectByAttributesParameters;
 import com.lo.analysis.Analysis;
+import com.lo.analysis.SpectrumLayer;
 import com.lo.config.Confs;
 import com.lo.layer.LocationLayerUtils;
 import com.lo.util.WSClient;
 import com.lo.util.WSClientLone;
+import com.lo.web.ListTiles;
+import com.lo.web.SpectrumRenderMap;
 import com.lo.web.SpectrumRenderTile;
+import com.mapinfo.midev.service.mapping.v1.MapImage;
+import com.mapinfo.midev.service.namedresource.v1.ListNamedResourceResponse;
+import com.mapinfo.midev.service.namedresource.v1.NamedResource;
 import com.spinn3r.log5j.Logger;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.w3c.dom.Document;
@@ -76,18 +89,56 @@ public class MapProvider implements IMapProvider {
     }
 
     @Override
-    public byte[] getImage(String mapInstanceKey, String format, int width, int height) throws RemoteException, ServletException, IOException {
-        return WSClient.getMapService().getImage(mapInstanceKey, format, width, height);
+    public byte[] getImage(String mapInstanceKey,IBoundsParameters boundsParams,HttpServletRequest request, String format, int width, int height) throws RemoteException, ServletException, IOException {
+        //return WSClient.getMapService().getImage(mapInstanceKey, format, width, height);
        // SpectrumRenderTile tile = new SpectrumRenderTile();
         //return tile.createImageFromTiles();
+        byte[] img = null;
+        List<SpectrumLayer> analysisLayers = (List<SpectrumLayer>) request.getSession().getAttribute("SPEC_ANALYSIS_LAYERS");
         
+        if(analysisLayers != null  && analysisLayers.size() > 0 )
+        {
+        SpectrumRenderMap specMap = SpectrumRenderMap.getInstance();
+        
+            try {
+                img = specMap.SpecRenderMap(analysisLayers, mapInstanceKey,boundsParams,width,height);
+            } catch (Exception ex) {
+                java.util.logging.Logger.getLogger(MapProvider.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        
+        }
+        else
+        {
+          img =   getTransparentTile();
+        }
+        
+        return img;
+    }
+    
+    private byte[] getTransparentTile() {
+        try {
+            BufferedImage finalTile = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+
+            byte[] imageInByte = null;
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(finalTile, "png", baos);
+            baos.flush();
+            imageInByte = baos.toByteArray();
+            baos.close();
+
+            return imageInByte;
+        } catch (Exception e) {
+            //LOGGER.error("Error while getting Empty tile", e);
+            return null;
+        }
     }
 
     @Override
     public void setBounds(IBoundsParameters parameters) throws RemoteException, SAXException, IOException, XPathExpressionException {
-        WSClient.getMapService().setBounds(parameters.mapInstanceKey(),
-                parameters.xmin(), parameters.ymin(),
-                parameters.xmax(), parameters.ymax());
+       // WSClient.getMapService().setBounds(parameters.mapInstanceKey(),
+         //       parameters.xmin(), parameters.ymin(),
+           //     parameters.xmax(), parameters.ymax());
     }
 
     @Override
@@ -95,9 +146,9 @@ public class MapProvider implements IMapProvider {
         response.setContentType(parameters.format());
         byte[] image = null;
         try {
-            image = getImage(
-                    parameters.mapInstanceKey(), parameters.format(),
-                    parameters.width(), parameters.height());
+            //image = getImage(
+            //        parameters.mapInstanceKey(), parameters.format(),
+              //      parameters.width(), parameters.height());
         } catch (Exception e) {
             log.error(null, e);
         }
@@ -131,18 +182,34 @@ public class MapProvider implements IMapProvider {
     private String getCoord(Document doc, String xPathQuery) throws XPathExpressionException {
         return XMLHelper.get().getString(doc, xPathQuery);
     }
-    
-    public static void initWorkspaceProperties(String mapInstanceKey) throws RemoteException {
-        WSClient.getMapService().setWorkspaceProperty(mapInstanceKey, "com.mapinfo.render.backgroundTransparency", "0");
-    }
+    //Pjain
+//    public static void initWorkspaceProperties(String mapInstanceKey) throws RemoteException {
+//        WSClient.getMapService().setWorkspaceProperty(mapInstanceKey, "com.mapinfo.render.backgroundTransparency", "0");
+//    }
 
     @Override
-    public void init(IInitParameters parameters) throws Exception {
-        String mapInstanceKey = WSClient.getMappingSessionService().createMapInstanceKey(parameters.workspaceKey()); 
-        initWorkspaceProperties(mapInstanceKey);
+    public void init(IInitParameters parameters, HttpServletRequest request) throws Exception {
+        
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssS");
+        String timeStamp = dateFormat.format(new Date());
+        String mapInstanceKey =  request.getSession().getId() + timeStamp;
+        List<SpectrumLayer> analysisLayers = new ArrayList<SpectrumLayer>();
+        Collection<Layer> layers = new ArrayList<Layer>();
+       
+        request.getSession().setAttribute("SPEC_LAYERS", layers);
+        
+        request.getSession().setAttribute("SPEC_ANALYSIS_LAYERS",analysisLayers);
+
+
+//
+        //String mapInstanceKey = WSClient.getMappingSessionService().createMapInstanceKey(parameters.workspaceKey()); 
+//Pjain       
+        //initWorkspaceProperties(mapInstanceKey);
         parameters.setMapInstanceKey(mapInstanceKey);
+        //parameters.setSpecMapInstanceKey(specMapInstanceKey);
         log.debug("workspaceKey [" + parameters.workspaceKey() + "] mapInstanceKey: " + mapInstanceKey);
-        (new LocationLayerUtils()).createGlobalLocationLayer(parameters);
+        //log.debug("Spectrum mapInstanceKey: " + specMapInstanceKey);
+        //(new LocationLayerUtils()).createGlobalLocationLayer(parameters);
     }
 
     @Override
@@ -203,8 +270,9 @@ public class MapProvider implements IMapProvider {
     public int setSelection(IPixelSelectionParameters parameters, Boolean append) throws Exception {
         int resultCount = 0;
         try {
-            String layerId = WSClient.getMapService().getLayersIdByName(parameters.mapInstanceKey(),
-                    parameters.getLayerName())[0];
+//            String layerId = WSClient.getMapService().getLayersIdByName(parameters.mapInstanceKey(),
+//                    parameters.getLayerName())[0];
+            String layerId = "38";
             WSClient.getFeatureSetService().setSelectionWithRegion(
                     parameters.mapInstanceKey(),
                     layerId,
@@ -276,36 +344,57 @@ public class MapProvider implements IMapProvider {
     }
 
     @Override
-    public Collection<Layer> getLayers(IBaseParameters parameters, IFilter filter) throws Exception {
-        Document doc = XMLHelper.get().newDocument(WSClient.getMapService().getMapInfo(parameters.mapInstanceKey()));
-        NodeList nodes = XMLHelper.get().getList(doc, "//LayerInterface");
-        Collection<Layer> layers = new ArrayList<Layer>(nodes.getLength());
-        for (int i = 0; i < nodes.getLength(); ++i) {
-            Element el = (Element) nodes.item(i);
-            Layer layer = new Layer(el,
-                    Double.parseDouble(XMLHelper.get().getString(doc, "//MapZoom/text()")));
-            if (filter == null || filter.isNeeded(layer)) {
-//                log.debug(String.format("layer cntl - add layer [%s]", layer.getName()));
-                layers.add(layer);
-                String name = layer.getName().toUpperCase();
-                if (labelOnlyLayersName.contains(name)) {
-                    layer.setVisibilityBasedOnLabel(el);
-                    
-                    if (!labelOnlyLayers.containsKey(name)) {
-                        labelOnlyLayers.put(layer.getId(), null);
-                        
-                        layer.getLabelFields().add("SPONSOR_LOCATION_CODE");
-                        layer.getLabelFields().add("CUSTOMER_LOCATION_CODE");
-                        layer.getLabelFields().add("SPONSOR_LOCATION_NAME");
-                        
-                        layer.getLabelDisplays().add("AM Loc. Code");
-                        layer.getLabelDisplays().add("Location ID");
-                        layer.getLabelDisplays().add("Location Name");
-                    }
-                }
-        }
-        }
+    public Collection<Layer> getLayers(IBaseParameters parameters, IFilter filter, HttpServletRequest request) throws Exception {
+         
+//        Document doc = XMLHelper.get().newDocument(WSClient.getMapService().getMapInfo(parameters.mapInstanceKey()));
+//        NodeList nodes = XMLHelper.get().getList(doc, "//LayerInterface");
+//        Collection<Layer> layers = new ArrayList<Layer>(nodes.getLength());
+//        for (int i = 0; i < nodes.getLength(); ++i) {
+//            Element el = (Element) nodes.item(i);
+//            Layer layer = new Layer(el,
+//                    Double.parseDouble(XMLHelper.get().getString(doc, "//MapZoom/text()")));
+//            if (filter == null || filter.isNeeded(layer)) {
+////                log.debug(String.format("layer cntl - add layer [%s]", layer.getName()));
+//                layers.add(layer);
+//                String name = layer.getName().toUpperCase();
+//                if (labelOnlyLayersName.contains(name)) {
+//                    layer.setVisibilityBasedOnLabel(el);
+//                    
+//                    if (!labelOnlyLayers.containsKey(name)) {
+//                        labelOnlyLayers.put(layer.getId(), null);
+//                        
+//                        layer.getLabelFields().add("SPONSOR_LOCATION_CODE");
+//                        layer.getLabelFields().add("CUSTOMER_LOCATION_CODE");
+//                        layer.getLabelFields().add("SPONSOR_LOCATION_NAME");
+//                        
+//                        layer.getLabelDisplays().add("AM Loc. Code");
+//                        layer.getLabelDisplays().add("Location ID");
+//                        layer.getLabelDisplays().add("Location Name");
+//                    }
+//                }
+//        }
+//        }
+        
+        ListTiles tiledObj = ListTiles.getInstance();
+        ListNamedResourceResponse tiles = tiledObj.getResp();
+        //HashMap<NamedResource,Boolean> layerWithVisiblity =new HashMap<NamedResource,Boolean>();
+        Collection<Layer> layers = new ArrayList<Layer>(tiles.getNamedResource().size());
+        for (NamedResource tile : tiles.getNamedResource()) {
+            //final int localI = ++i;
+            Layer specLayer = new Layer(tile);
+            layers.add(specLayer);
+           // layerWithVisiblity.put(tile, false);
+       }
+//        
+          
+        
+        
+        //HttpSession specSession = request.getSession();
+        request.getSession().setAttribute("SPEC_LAYERS", layers);
+        //List<SpectrumLayer>
+        //specSession.setAttribute("SPEC_ANALYSIS_LAYERS", List<SpectrumLayer>);
         return layers;
+        
     }
 
     @Override
@@ -323,7 +412,22 @@ public class MapProvider implements IMapProvider {
     }
 
     @Override
-    public void setLayerVisibility(ILayerVisibilityParameters params) throws Exception {
-        WSClient.getLayerService().setVisible(params.mapInstanceKey(), params.id(), params.visibility());
+    public void setLayerVisibility(ILayerVisibilityParameters params,HttpServletRequest request) throws Exception {
+        //WSClient.getLayerService().setVisible(params.mapInstanceKey(), params.id(), params.visibility());
+       ArrayList<Layer> layerWithVisiblity = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
+        String layer = params.name();
+        Boolean visible = params.visibility();
+        for (Layer tile : layerWithVisiblity) {
+            String tileName = tile.getName();
+                if(tileName.equals(layer)){
+                    //layerWithVisiblity.put(tile,visible);
+                    tile.setVisibility(visible);
+                }
+            }
+        
+        
+        
+        request.getSession().setAttribute("SPEC_LAYERS",layerWithVisiblity);
+        
     }
 }

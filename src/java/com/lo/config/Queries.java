@@ -315,5 +315,14 @@ public interface Queries {
      * @return String
      */
     String locationsQueryLocationCode();
+    
+    String tradeareaInsertPolygon();
+    
+    String tradeareaDeletePolygon();
+    
+    String tradeareaTruncatePolygon();
+    
+    String spectradeareaLocationGetColor();
+    
 
 }

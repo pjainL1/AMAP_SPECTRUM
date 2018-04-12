@@ -6,4 +6,5 @@ package com.korem.openlayers.parameters;
  */
 public interface IBaseParameters {
     String mapInstanceKey();
+    //String specMapInstanceKey();
 }

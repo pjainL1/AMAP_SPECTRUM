@@ -151,17 +151,17 @@ public class InitAction extends Action {
         return req.getRequestURL().toString().contains("loading");
     }
 
-    static void initMap(IInitParameters params) throws Exception {
+    static void initMap(IInitParameters params, HttpServletRequest request) throws Exception {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
-        mapProvider.init(params);
-        initLayers(mapProvider, params);
+        mapProvider.init(params, request);
+        initLayers(mapProvider, params,request);
     }
 
-    static void initLayers(IMapProvider mapProvider, IBaseParameters params)
+    static void initLayers(IMapProvider mapProvider, IBaseParameters params,HttpServletRequest request)
             throws Exception {
         for (Layer layer : mapProvider
-                .getLayers(params, GetLayers.LAYER_FILTER)) {
-            mapProvider.setLayerVisibility(createParams(params, layer));
+                .getLayers(params, GetLayers.LAYER_FILTER, request)) {
+            mapProvider.setLayerVisibility(createParams(params, layer),request);
         }
     }
 
