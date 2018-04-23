@@ -78,7 +78,7 @@ public class TradeAreaMethod implements IProgressAware {
             String tradeareas = ip.tradearea();
             if ((locations != null && locations.length() > 0) || tradeareas.contains("projected") || tradeareas.contains("custom")) {
                 AnalysisControler controler = new TradeAreaControler(tradeareas.split(","), ip, listener, cp, cp.getSponsor());
-                controler.createLayer((HttpSession)((Object[])params)[1]);
+                controler.createLayer((HttpSession) ((Object[]) params)[1]);
                 for (String ta : tradeareas.split(",")){
                     if (!"".equals(ta)){
                         LoggingUtil.log(cp.getUser(), cp.getSponsor(), LoggingUtil.getTradeAreaMessage(TradeArea.Type.valueOf(ta), ip));

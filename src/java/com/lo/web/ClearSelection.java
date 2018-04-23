@@ -16,7 +16,7 @@ public class ClearSelection extends GenericServlet<IBaseParameters> {
     @Override
     protected String getJSON(HttpServletRequest req, IBaseParameters params) throws Exception {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
-        mapProvider.clearSelection(params);
+        mapProvider.clearSelection(params,req.getSession());
         SelectionReplicator selectionUtils = new SelectionReplicator(ContextParams.get(req.getSession()));
         selectionUtils.clear();
         return null;

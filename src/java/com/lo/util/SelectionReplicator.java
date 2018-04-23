@@ -14,6 +14,8 @@ import com.spinn3r.log5j.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import net.sf.json.util.JSONBuilder;
 import net.sf.json.util.JSONStringer;
 
@@ -30,26 +32,33 @@ public class SelectionReplicator {
         this.contextParams = contextParams;
     }
 
-    public String createResult(IMapProvider mapProvider, IBaseParameters params) throws Exception {
-        //List<String> selectionPKs = new ArrayList<String>();
+    public String createResult(IMapProvider mapProvider, IBaseParameters params, HttpServletRequest req) throws Exception {
         
-        List<String> selectionPKs = Arrays.asList("860.0");
-           JSONBuilder json = new JSONStringer().array();
-        for (Feature feature : mapProvider.getSelection(params)) {
-            feature.appendJSON(json);
-            //selectionPKs.add(feature.getPK());
-        }
+        String selectedLocations =  (String) req.getSession().getAttribute("SELECTED_LOCATIONS");
+        
+        if(selectedLocations != null){
+        List<String> selectionPKs =  new ArrayList<String>(Arrays.asList(selectedLocations.split(",")));
+           
+        //JSONBuilder json = new JSONStringer().array();
+        //for (Feature feature : mapProvider.getSelection(params)) {
+           // feature.appendJSON(json);
+          //  selectionPKs.add(feature.getPK());
+        //}
         save(selectionPKs);
-        return json.endArray().toString();
+        return mapProvider.getSelectionResult();
+    }
+        else{
+            return "[]"; // empty JSON
+        }
     }
 
-    public void reapply(IMapProvider mapProvider, IBaseParameters params) throws Exception {
+    public void reapply(IMapProvider mapProvider, IBaseParameters params,HttpSession session) throws Exception {
         List<String> selectionPKs = contextParams.getSelectionPKs();
         if (selectionPKs != null) {
             log.debug("reapplying previous selection on mapInstance: " + params.mapInstanceKey());
             mapProvider.setSelectionByAttributes(toISelectByAttributesParameters(params.mapInstanceKey(), selectionPKs));
         } else {
-            mapProvider.clearSelection(params);
+            mapProvider.clearSelection(params,session);
         }
     }
 

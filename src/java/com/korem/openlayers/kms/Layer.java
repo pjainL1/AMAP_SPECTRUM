@@ -75,6 +75,12 @@ public class Layer {
         //layer.toString();
         //setZoomVisibility((Element) layer, zoomLevel);
     }
+    
+    public String getSourceTable(){
+        com.lo.Config con = com.lo.Config.getInstance();
+        return con.getSpecWorkspace() + "/NamedTables/" + this.getName() ;
+        
+    }
 
     private void setZoomVisibility(Element layer, double zoomLevel) throws XPathExpressionException {
         zoomVisibility = true;

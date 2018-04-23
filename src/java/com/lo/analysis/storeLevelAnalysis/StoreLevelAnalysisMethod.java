@@ -20,6 +20,7 @@ import com.spinn3r.log5j.Logger;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -46,17 +47,19 @@ public class StoreLevelAnalysisMethod implements Apply.IProgressAware{
         try {
             final String mapInstanceKey = applyParams.mapInstanceKey();
             final List<Double> selectionAsDoubles = new ArrayList<>();
-            for (Feature feature : GetOpenLayers.getMapProvider().getSelection(applyParams)) {
-                selectionAsDoubles.add(Double.valueOf(feature.getPK()));
+            List<String> selectionAsString = cp.getSelectionPKs();
+            if(selectionAsString != null){
+            for (String PK : selectionAsString) {
+                selectionAsDoubles.add(Double.valueOf(PK));
             }
-            
-            String[] idsThemes = WSClient.getMapService().getLayersIdByName(applyParams.mapInstanceKey(), Analysis.STORE_ANALYSIS_LEVEL_THEME.toString());
+            }
+            //String[] idsThemes = WSClient.getMapService().getLayersIdByName(applyParams.mapInstanceKey(), Analysis.STORE_ANALYSIS_LEVEL_THEME.toString());
 
-            for (String id : idsThemes) {
-                if (id != null && !"-1".equals(id) && !"".equals(id)) {
-                    WSClient.getMapService().removeLayer(applyParams.mapInstanceKey(), id);
-                }
-            }
+//            for (String id : idsThemes) {
+//                if (id != null && !"-1".equals(id) && !"".equals(id)) {
+//                    WSClient.getMapService().removeLayer(applyParams.mapInstanceKey(), id);
+//                }
+//            }
             
             if (applyParams.slaTransactionValue() != null) {
                 StoreLevelAnalysisController controller = new StoreLevelAnalysisController(applyParams, listener, cp);
@@ -64,23 +67,26 @@ public class StoreLevelAnalysisMethod implements Apply.IProgressAware{
                 controller.createLayer((HttpSession) ((Object[]) params)[1]);
                 log.debug("time to create SLA: "+(System.currentTimeMillis()-time));
                 LoggingUtil.log(cp.getUser(), cp.getSponsor(), LoggingUtil.getStoreLevelAnalysisMessage(applyParams));
-            } else if(idsThemes!=null&&idsThemes.length>0){
-                LabelSettings labelSettings = LocationLayerUtils.get().getCurrentLabelSetting(applyParams.mapInstanceKey());
-                String locationLayerId = WSClient.getMapService().getLayersIdByName(applyParams.mapInstanceKey(), Analysis.LOCATIONS.toString())[0];
-                WSClient.getMapService().removeLayer(applyParams.mapInstanceKey(), locationLayerId);
-                LocationLayerUtils.get().createGlobalLocationLayer(
-                    applyParams.mapInstanceKey(), 
-                    cp.getSelectedSponsorCodes(),
-                    DateParser.prepareOracleWhenFragment(applyParams.from()),
-                    DateParser.prepareOracleWhenFragment(applyParams.to()),
-                    cp.getSponsor().getLogoURL());
-                String newLocationLayerId = WSClient.getMapService().getLayersIdByName(applyParams.mapInstanceKey(), Analysis.LOCATIONS.toString())[0];
-                WSClientLone.getLayerService().changeLayerId(applyParams.mapInstanceKey(), newLocationLayerId, locationLayerId);
-                if(labelSettings!=null){
-                    WSClientLone.getLayerService().setLabelVisibility(applyParams.mapInstanceKey(), locationLayerId, labelSettings.isLabelEnabled(), labelSettings.getLabelField());
             }
-            }
+//            } else if(idsThemes!=null&&idsThemes.length>0){
+//                LabelSettings labelSettings = LocationLayerUtils.get().getCurrentLabelSetting(applyParams.mapInstanceKey());
+//                String locationLayerId = WSClient.getMapService().getLayersIdByName(applyParams.mapInstanceKey(), Analysis.LOCATIONS.toString())[0];
+//                WSClient.getMapService().removeLayer(applyParams.mapInstanceKey(), locationLayerId);
+//                LocationLayerUtils.get().createGlobalLocationLayer(
+//                    applyParams.mapInstanceKey(), 
+//                    cp.getSelectedSponsorCodes(),
+//                    DateParser.prepareOracleWhenFragment(applyParams.from()),
+//                    DateParser.prepareOracleWhenFragment(applyParams.to()),
+//                    cp.getSponsor().getLogoURL(), (HttpSession) ((Object[]) params)[1]);
+//                String newLocationLayerId = WSClient.getMapService().getLayersIdByName(applyParams.mapInstanceKey(), Analysis.LOCATIONS.toString())[0];
+//                WSClientLone.getLayerService().changeLayerId(applyParams.mapInstanceKey(), newLocationLayerId, locationLayerId);
+//                if(labelSettings!=null){
+//                    WSClientLone.getLayerService().setLabelVisibility(applyParams.mapInstanceKey(), locationLayerId, labelSettings.isLabelEnabled(), labelSettings.getLabelField());
+//            }
+//            }
             if(!selectionAsDoubles.isEmpty()){
+                
+            
             GetOpenLayers.getMapProvider().setSelectionByAttributes(
                 new ISelectByAttributesParameters() {
                     @Override
@@ -103,14 +109,17 @@ public class StoreLevelAnalysisMethod implements Apply.IProgressAware{
                         return mapInstanceKey;
                     }
                 }
+              
             );
             }
-            
-        } catch (Exception ex) {
+            }
+         catch (Exception ex) {
             log.error("", ex);
         } finally {
             listener.update(100);
         }
+      
+     
+       
     }
-    
-}
+}       

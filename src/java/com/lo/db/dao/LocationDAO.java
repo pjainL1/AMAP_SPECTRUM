@@ -136,7 +136,7 @@ public class LocationDAO {
         return colorCode;
     }
     
-    public String getSpecTradeAreaColorLocation(String mapInstanceKey) {
+    public String getSpecTAColorLocation(String mapInstanceKey) {
         String colorCodes = "";
         final List<String> locationWithColor = new ArrayList<String>();
         try {
@@ -158,6 +158,65 @@ public class LocationDAO {
             dao.log("An error occured retreiving a Spectrum Trade Area color  from db.", ex.getMessage());
         }
         return colorCodes;
+    }
+    
+        public String getSpecNWColorLocation(String mapInstanceKey) {
+        String colorCodes = "";
+        final List<String> locationWithColor = new ArrayList<String>();
+        try {
+            ResultSetHandler<String> handler = new ResultSetHandler<String>() {
+                @Override
+                public String handle(ResultSet rs) throws SQLException {
+                    while (rs.next()){
+                        
+                    String colorCode = rs.getString("SPONSOR_LOCATION_KEY") + "~#" + rs.getString("NWATCH_COLOR"); // to create locationcode and color code string e.g 862~#FF0000
+                    locationWithColor.add(colorCode);
+                    }
+                    String listString = String.join(",", locationWithColor);
+                    return listString;
+                }
+            };
+            colorCodes = dao.getLoneRunner().query(Confs.QUERIES.specNWLocationGetColor(), handler, mapInstanceKey);
+
+        } catch (SQLException ex) {
+            dao.log("An error occured retreiving a Spectrum NWATCH color  from db.", ex.getMessage());
+        }
+        return colorCodes;
+    }
+    
+    
+     public Integer insertNWResults(String query) throws SQLException{
+        //String insertTradeAreaQuery = Confs.QUERIES.tradeareaInsertPolygon();
+        Integer numberOfRecords = 0;
+        Connection conn = null;
+        //int[] mipk = generateFakeIds(ta.size());
+        //LocationDAO dao = new LocationDAO(new AirMilesDAO());
+        int i = 0;
+        try {
+
+              numberOfRecords =  dao.getLoneRunner().update(query);
+
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a NW Results to LIM_NW_RESULTS.", ex.getMessage());
+        } 
+        return numberOfRecords;
+    }
+    
+     public Integer insertSLAResults(String query) throws SQLException{
+        //String insertTradeAreaQuery = Confs.QUERIES.tradeareaInsertPolygon();
+        Integer numberOfRecords = 0;
+        Connection conn = null;
+        //int[] mipk = generateFakeIds(ta.size());
+        //LocationDAO dao = new LocationDAO(new AirMilesDAO());
+        int i = 0;
+        try {
+
+              numberOfRecords =  dao.getLoneRunner().update(query);
+
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a NW Results to LIM_SLA_RESULTS.", ex.getMessage());
+        } 
+        return numberOfRecords;
     }
     
     public Integer insertTradeAreaPolygon(String mapInstanceKeySpec,List<TradeArea> ta,int[] mipk) throws SQLException{
@@ -203,18 +262,72 @@ public class LocationDAO {
         return truncateStatus;
     }
     
-    public Integer deleteTradeAreaPolygon(String mapInstanceKeySpec) throws SQLException{
-        String deleteTradeAreaQuery = Confs.QUERIES.tradeareaDeletePolygon();
-        Integer numberOfRecords = 0;
-        Connection conn = null;
+    public Boolean truncateNWResults() throws SQLException{
+        String truncateNWResultsQuery = Confs.QUERIES.specNWTruncateResults();
+        Boolean truncateStatus;
         //int[] mipk = generateFakeIds(ta.size());
         //LocationDAO dao = new LocationDAO(new AirMilesDAO());
 
+        try {
+                 dao.getLoneRunner().update(truncateNWResultsQuery);
+                 truncateStatus = true;
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a Trade Area to LIM_NW_RESULTS.", ex.getMessage());
+            truncateStatus = false;
+        } 
+        return truncateStatus;
+    }
+    
+    public Boolean truncateSLAResults() throws SQLException{
+        String truncateSLAResultsQuery = Confs.QUERIES.specSLATruncateResults();
+        Boolean truncateStatus;
+        //int[] mipk = generateFakeIds(ta.size());
+        //LocationDAO dao = new LocationDAO(new AirMilesDAO());
+
+        try {
+                 dao.getLoneRunner().update(truncateSLAResultsQuery);
+                 truncateStatus = true;
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a Trade Area to LIM_SLA_RESULTS.", ex.getMessage());
+            truncateStatus = false;
+        } 
+        return truncateStatus;
+    }
+    
+    public Integer deleteTradeAreaPolygon(String mapInstanceKeySpec) throws SQLException{
+        String deleteTradeAreaQuery = Confs.QUERIES.tradeareaDeletePolygon();
+        Integer numberOfRecords = 0;
         try {
                  numberOfRecords = dao.getLoneRunner().update(deleteTradeAreaQuery, mapInstanceKeySpec);
             
         } catch (SQLException ex) {
             dao.log("An error occured inserting a Trade Area to LIM_TA_POLYGON.", ex.getMessage());
+        } 
+        return numberOfRecords;
+    }
+    
+    public Integer deleteNWResults(String mapInstanceKeySpec) throws SQLException{
+        String deleteNWResultsQuery = Confs.QUERIES.specNWDeleteResults();
+        Integer numberOfRecords = 0;
+
+        try {
+                 numberOfRecords = dao.getLoneRunner().update(deleteNWResultsQuery, mapInstanceKeySpec);
+            
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a Trade Area to LIM_NW_RESULTS.", ex.getMessage());
+        } 
+        return numberOfRecords;
+    }
+    
+    public Integer deleteSLAResults(String mapInstanceKeySpec) throws SQLException{
+        String deleteSLAResultsQuery = Confs.QUERIES.specSLADeleteResults();
+        Integer numberOfRecords = 0;
+
+        try {
+                 numberOfRecords = dao.getLoneRunner().update(deleteSLAResultsQuery, mapInstanceKeySpec);
+            
+        } catch (SQLException ex) {
+            dao.log("An error occured inserting a Trade Area to LIM_NW_RESULTS.", ex.getMessage());
         } 
         return numberOfRecords;
     }

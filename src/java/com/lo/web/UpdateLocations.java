@@ -44,7 +44,7 @@ public class UpdateLocations extends GenericServlet<IWhenParameters> {
         }
         
         llu.updateRange(params.mapInstanceKey(), params.from(), params.to(),
-                cp.getSelectedSponsorCodes(),logo );
+                cp.getSelectedSponsorCodes(),logo,req.getSession() );
         
         return null;
     }

@@ -27,15 +27,24 @@ public class LoyaltyOneContextListener implements ServletContextListener{
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         Boolean rowsDeleted = false;
+        LocationDAO locationDAO = new LocationDAO(new AirMilesDAO());
         try {
-            
-            LocationDAO locationDAO = new LocationDAO(new AirMilesDAO());
             //Truncate LIM_TA_POLYGON
             rowsDeleted = locationDAO.truncateTradeAreaPolygon();
         } catch (SQLException ex) {
             java.util.logging.Logger.getLogger(LoyaltyOneContextListener.class.getName()).log(Level.SEVERE, null, ex);
         }
         log.info("LIM_TA_POLYGON TRUNCATE STATUS : " + rowsDeleted);
+        
+        try {
+
+            //Truncate LIM_NW_RESULTS
+            rowsDeleted = locationDAO.truncateTradeAreaPolygon();
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(LoyaltyOneContextListener.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        log.info("LIM_NW_RESULTS TRUNCATE STATUS : " + rowsDeleted);
+        
         log.info("LoyaltyOne Context Destroyed");
     }
     

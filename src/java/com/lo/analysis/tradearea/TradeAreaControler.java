@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import oracle.sql.STRUCT;
 
@@ -69,7 +70,7 @@ public class TradeAreaControler implements AnalysisControler {
     @Override
     public String createLayer(HttpSession session) {
         String layerID = null;
-        List<SpectrumLayer> analysisLayers = new ArrayList<SpectrumLayer>();
+        List<SpectrumLayer> analysisLayers = (List<SpectrumLayer>) session.getAttribute("SPEC_ANALYSIS_LAYERS");
         tradeAreas.clear();
         
         try {
@@ -103,11 +104,12 @@ public class TradeAreaControler implements AnalysisControler {
                         this.contextParams, this.params.from(), this.params.to(), 
                         this.params.polygon(), this.params.locations(), params);
                 
+                if (rowsInserted > 0){
                 SpectrumTradeAreaLayer specTALayer =  SpectrumTradeAreaLayer.getInstance(params.mapInstanceKey());
                 analysisLayers.add(specTALayer);
-                
-                
                 session.setAttribute("SPEC_ANALYSIS_LAYERS",analysisLayers);
+                }
+
                 
             }
         } catch (NumberFormatException | SQLException | ParseException ex) {

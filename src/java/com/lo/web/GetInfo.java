@@ -25,7 +25,7 @@ public class GetInfo extends GenericServlet<IInfoParameters> {
     @Override
     protected String getJSON(HttpServletRequest req, IInfoParameters params) throws Exception {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
-        Map<String, Collection<Map<String, Object>>> infos = mapProvider.getInfo(params, INFO_FILTER);
+        Map<String, Collection<Map<String, Object>>> infos = mapProvider.getInfo(params, INFO_FILTER,req );
         InfoAugmenter infoAugmenter = new InfoAugmenter();
         infoAugmenter.augment(infos, params, ContextParams.get(req.getSession()));
         

@@ -51,12 +51,12 @@ public class GetTileSpectrum extends HttpServlet {
             SpectrumRenderTile tile = SpectrumRenderTile.getInstance();
             byte[] image = tile.createImageFromTiles(level,x,y,request);
             
-            ArrayList<Layer> layers = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
+            //ArrayList<Layer> layers = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
             
-            for (Layer layer : layers) {
-                System.out.println(layer.getName()+' ' + layer.getVisibility());
-            }
-            System.out.println("Image Length " + image.length);
+//            for (Layer layer : layers) {
+//                System.out.println(layer.getName()+' ' + layer.getVisibility());
+//            }
+//            System.out.println("Image Length " + image.length);
             
             //if (image.length > 0)
             //{

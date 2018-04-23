@@ -4,11 +4,17 @@ import com.korem.heatmaps.Properties;
 import com.korem.openlayers.IMapProvider;
 import com.lo.ContextParams;
 import com.lo.analysis.Analysis;
+import com.lo.analysis.SpectrumLayer;
+import com.lo.analysis.nwatch.SpectrumNWLayer;
 import com.lo.analysis.storeLevelAnalysis.StoreLevelAnalysisMethod.IParams;
 import com.lo.config.Confs;
+import com.lo.db.dao.AirMilesDAO;
+import com.lo.db.dao.LocationDAO;
 import com.lo.hotspot.HotSpotQueries;
+import com.lo.layer.LocationLayer;
 import com.lo.layer.LocationLayerUtils;
 import com.lo.layer.LocationLayerUtils.LabelSettings;
+import com.lo.layer.LocationSLALayer;
 import com.lo.util.DateParser;
 import com.lo.util.DateType;
 import com.lo.util.LocationUtils;
@@ -24,6 +30,7 @@ import java.io.StringReader;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -33,6 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.logging.Level;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -116,21 +126,21 @@ public class StoreLevelAnalysisLayerCreator {
         this.contextParams = contextParams;
     }
 
-    public String apply(Apply.ProgressListener pl) throws Exception {
+    public String apply(Apply.ProgressListener pl,HttpSession session) throws Exception {
         try {
             if (this.contextParams != null) {
                 this.contextParams.setSlaTansactionValue(getLegendTitle(params.dateType(), params.slaTransactionValue()));
             }
-            addLayer(params, pl);
+            addLayer(params, pl,session);
         } catch (RemoteException ex) {
             log.error("Error creating store level analysis.", ex);
         }
         return layerId;
     }
 
-    private void addLayer(IParams params, Apply.ProgressListener pl) throws Exception {
+    private void addLayer(IParams params, Apply.ProgressListener pl,HttpSession session) throws Exception {
         pl.update(25);
-        String locationLayerId = WSClient.getMapService().getLayersIdByName(mapInstanceKey, Analysis.LOCATIONS.toString())[0];
+        //String locationLayerId = WSClient.getMapService().getLayersIdByName(mapInstanceKey, Analysis.LOCATIONS.toString())[0];
         String styleRendition;
         if (null != contextParams.getSponsor().getLogoURL()){
             styleRendition=  MessageFormat.format(rbloc.getString("location.logo"), contextParams.getSponsor().getLogoURL());
@@ -141,83 +151,124 @@ public class StoreLevelAnalysisLayerCreator {
         String query;
         if(DateType.valueOf(params.dateType())==DateType.single){
             String baseQuery = rb.getString("sla.single.query").replace("%COMPARAISON_RANGE_FRAGMENT%", "");
-            query = getSingleQuery(baseQuery, params.slaTransactionValue(), params.from(), params.to(), params.compareFrom(), params.compareTo(), params.minTransactions(), params.minSpend(), params.minUnit(), styleRendition).replace("%COMPARAISON_RANGE_FRAGMENT%", "");
+            query = getSingleQuery(baseQuery,mapInstanceKey, params.slaTransactionValue(), params.from(), params.to(), params.compareFrom(), params.compareTo(), params.minTransactions(), params.minSpend(), params.minUnit(), styleRendition).replace("%COMPARAISON_RANGE_FRAGMENT%", "");
         } else {
             boolean isCollectorBased = params.slaTransactionValue() != null && params.slaTransactionValue().equals("collectors");
             String baseQuery = rb.getString("sla.single.query").replace("%COMPARAISON_RANGE_FRAGMENT%", "");
-            String subquery1 = getComparedQuery(baseQuery, params.slaTransactionValue(), params.from(), params.to(), params.compareFrom(), params.compareTo(), params.minTransactions(), params.minSpend(), params.minUnit(), styleRendition, isCollectorBased, HotSpotQueries.QueryType.COMPARE_FIRST);
-            String subquery2 = getComparedQuery(baseQuery, params.slaTransactionValue(), params.compareFrom(), params.compareTo(), params.from(), params.to(), params.minTransactions(), params.minSpend(), params.minUnit(), styleRendition, isCollectorBased, HotSpotQueries.QueryType.COMPARE_SECOND);
+            String subquery1 = getComparedQuery(baseQuery,mapInstanceKey, params.slaTransactionValue(), params.from(), params.to(), params.compareFrom(), params.compareTo(), params.minTransactions(), params.minSpend(), params.minUnit(), styleRendition, isCollectorBased, HotSpotQueries.QueryType.COMPARE_FIRST);
+            String subquery2 = getComparedQuery(baseQuery,mapInstanceKey, params.slaTransactionValue(), params.compareFrom(), params.compareTo(), params.from(), params.to(), params.minTransactions(), params.minSpend(), params.minUnit(), styleRendition, isCollectorBased, HotSpotQueries.QueryType.COMPARE_SECOND);
             query = rb.getString("sla." + params.dateType() + ".query").replace("%subquery1", subquery1).replace("%subquery2", subquery2);
         }
 
-        log.debug("adding layer: " + query);
+        log.debug("adding SLA layer: " + query);
         
         //WSClientLone.getLayerService().setQuery(mapInstanceKey, locationLayerId, query);
-        createAnnotationLayer(query, styleRendition);
+        //createAnnotationLayer(query, styleRendition);
 
-        pl.update(50);
-        Map<String, String> attributes = this.contextParams.getUser().getAttributes();
+        LocationDAO locationDAO = new LocationDAO(new AirMilesDAO());
+        int rowsDeleted = 0;
+        try {
+            rowsDeleted = locationDAO.deleteSLAResults(params.mapInstanceKey());
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(StoreLevelAnalysisLayerCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        log.debug("No of rows deleted from LIM_SLA_RESULTS : "+ rowsDeleted);
+                
+        int rowsInserted = 0;
+        try {
+            rowsInserted = locationDAO.insertSLAResults(query);
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(StoreLevelAnalysisLayerCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        log.debug("No of Rows Inserted in LIM_SLA_RESULTS TABLE : " + rowsInserted);
         
-        String keyBase = "SLA." + params.slaTransactionValue();
-        if (DateType.valueOf(params.dateType()) == DateType.comparison) {
-            keyBase += "Comparison";
-        };
-        boolean isAttributeActive = Boolean.parseBoolean(attributes.get(keyBase + "Active"));
-        String range = "";
-        if (isAttributeActive){
-            range = this.createRangedTheme(attributes.get(keyBase));
+        //Add New SLA layer to session
+        if (rowsInserted > 0){
+            List<SpectrumLayer> analysisLayers = (List<SpectrumLayer>) session.getAttribute("SPEC_ANALYSIS_LAYERS");
+            LocationSLALayer specSLALayer =   LocationSLALayer.getInstance(mapInstanceKey,session);
+             
+            String nameSLATable = Confs.CONFIG.namedTableLIM_SLA_RESULTS();
+            String nameSpecLocTable = Confs.CONFIG.xyTableSPONSOR_LOCATION();
+            String specBaseQuery = rb.getString("sla.spec.query");
+            String specQuery = String.format(specBaseQuery,nameSLATable,mapInstanceKey);
+            specSLALayer.setQuery(specQuery);
+            
+            Map<String, String> attributes = this.contextParams.getUser().getAttributes();
+        
+            String keyBase = "SLA." + params.slaTransactionValue();
+            if (DateType.valueOf(params.dateType()) == DateType.comparison) {
+                keyBase += "Comparison";
+            };
+            boolean isAttributeActive = Boolean.parseBoolean(attributes.get(keyBase + "Active"));
+            String range = "";
+            if (isAttributeActive){
+                range = this.createRangedTheme(attributes.get(keyBase));
+            }
+            specSLALayer.setRangeClasses(range);
+            specSLALayer.setAttributeActive(isAttributeActive);
+            
+            
+            analysisLayers.add(specSLALayer);
+            session.setAttribute("SPEC_ANALYSIS_LAYERS",analysisLayers);
         }
-       if(isAttributeActive){        
-            WSClientLone.getLoneThematicService().createRangedTheme(
-                mapInstanceKey, 
-                new String[]{Analysis.STORE_ANALYSIS_LEVEL_THEME.toString()}, 
-                new String[]{Analysis.LOCATIONS.toString()},  
-                "value", 
-                STARTCOLOR, 
-                ENDCOLOR, 
-                RANG, 
-                ROUNDBY, 
-                0, 
-                range,
-                FONT, 
-                getLegendTitle(params.dateType(), params.slaTransactionValue()), 
-                getLegendSubTitlev(params), 
-                NOZERO, 
-                LOCAL,
-                1,
-                "Symbol (35,16777215,16,\"MapInfo Symbols\",16,0)",
-                false,
-                0,
-                new int[]{16711680,12599296, 8421376, 4243456, 65280},
-                true
-            );      
-        } else {
-            WSClientLone.getLoneThematicService().createRangedTheme(
-                mapInstanceKey, 
-                new String[]{Analysis.STORE_ANALYSIS_LEVEL_THEME.toString()}, 
-                new String[]{Analysis.LOCATIONS.toString()}, 
-                "value", 
-                STARTCOLOR, 
-                ENDCOLOR, 
-                RANG, 
-                ROUNDBY, 
-                DISTRIBUTION, 
-                null,
-                FONT, 
-                getLegendTitle(params.dateType(), params.slaTransactionValue()), 
-                getLegendSubTitlev(params), 
-                NOZERO, 
-                LOCAL,
-                1,
-                "Symbol (35,16777215,16,\"MapInfo Symbols\",16,0)",
-                false,
-                0,
-                null,
-                true
-            );        
-        }
-       
-        reapplySelection(params);
+        
+        
+        
+        
+        
+        pl.update(50);
+        
+//       if(isAttributeActive){        
+//            WSClientLone.getLoneThematicService().createRangedTheme(
+//                mapInstanceKey, 
+//                new String[]{Analysis.STORE_ANALYSIS_LEVEL_THEME.toString()}, 
+//                new String[]{Analysis.LOCATIONS.toString()},  
+//                "value", 
+//                STARTCOLOR, 
+//                ENDCOLOR, 
+//                RANG, 
+//                ROUNDBY, 
+//                0, 
+//                range,
+//                FONT, 
+//                getLegendTitle(params.dateType(), params.slaTransactionValue()), 
+//                getLegendSubTitlev(params), 
+//                NOZERO, 
+//                LOCAL,
+//                1,
+//                "Symbol (35,16777215,16,\"MapInfo Symbols\",16,0)",
+//                false,
+//                0,
+//                new int[]{16711680,12599296, 8421376, 4243456, 65280},
+//                true
+//            );      
+//        } else {
+//            WSClientLone.getLoneThematicService().createRangedTheme(
+//                mapInstanceKey, 
+//                new String[]{Analysis.STORE_ANALYSIS_LEVEL_THEME.toString()}, 
+//                new String[]{Analysis.LOCATIONS.toString()}, 
+//                "value", 
+//                STARTCOLOR, 
+//                ENDCOLOR, 
+//                RANG, 
+//                ROUNDBY, 
+//                DISTRIBUTION, 
+//                null,
+//                FONT, 
+//                getLegendTitle(params.dateType(), params.slaTransactionValue()), 
+//                getLegendSubTitlev(params), 
+//                NOZERO, 
+//                LOCAL,
+//                1,
+//                "Symbol (35,16777215,16,\"MapInfo Symbols\",16,0)",
+//                false,
+//                0,
+//                null,
+//                true
+//            );        
+//        }
+//       
+        reapplySelection(params,session);
 
         pl.update(75);
     }
@@ -322,23 +373,25 @@ public class StoreLevelAnalysisLayerCreator {
         WSClient.getLayerService().setSelectable(mapInstanceKey, locationLayerId, true);
     }
     
-    private void reapplySelection(IParams params) throws Exception {
+    private void reapplySelection(IParams params,HttpSession session) throws Exception {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
         
         SelectionReplicator selectionUtils = new SelectionReplicator(contextParams);
-        selectionUtils.reapply(mapProvider, params);
+        selectionUtils.reapply(mapProvider, params,session);
     }
     
     private String createRangedTheme(String attributes){
         //loop through the attributes and create json like string
-        String rangedTheme = "[{\"min\": "+Integer.MIN_VALUE+", \"max\":%s},{\"min\": %s, \"max\":%s},{\"min\": %s, \"max\":%s},{\"min\": %s, \"max\":%s},{\"min\": %s, \"max\":"+Integer.MAX_VALUE+"}]";
+        //String rangedTheme = "[{\"min\": "+Integer.MIN_VALUE+", \"max\":%s},{\"min\": %s, \"max\":%s},{\"min\": %s, \"max\":%s},{\"min\": %s, \"max\":%s},{\"min\": %s, \"max\":"+Integer.MAX_VALUE+"}]";
+        
+        String rangedTheme = Integer.MIN_VALUE + "~%s," + "%s~%s," +"%s~%s,"+"%s~%s,"+"%s~" + Integer.MAX_VALUE;
         //attributes = new StringBuilder(attributes).reverse().toString();
         String[] values = attributes.split(",");
         ArrayUtils.reverse(values);
         rangedTheme = String.format(rangedTheme, (Object[])values);
         return rangedTheme;
     }
-    private String getComparedQuery(String baseQuery, String value, String from, String to, String comparedFrom, String comparedTo, Integer minTransactions, Integer minSpend, Integer minUnit, String styleRendition, boolean isCollectorBased, HotSpotQueries.QueryType type) {
+    private String getComparedQuery(String baseQuery,String mapInstanceKey, String value, String from, String to, String comparedFrom, String comparedTo, Integer minTransactions, Integer minSpend, Integer minUnit, String styleRendition, boolean isCollectorBased, HotSpotQueries.QueryType type) {
         String minFragment = getMinValuesFragment(from, to, comparedFrom, comparedTo, minTransactions, minSpend, minUnit, isCollectorBased, type);
         String query = baseQuery.replace("%value", Values.getValue(value))
                 .replace("%MIN_VALUES_FRAGMENT", minFragment)
@@ -346,7 +399,8 @@ public class StoreLevelAnalysisLayerCreator {
                 .replaceAll("%subCondition%", Confs.HOTSPOT_CONFIG.queryBaseSponsorKeyClause())
                 .replaceAll("%sponsors%", StringUtils.join(contextParams.getSelectedSponsorKeys(), ","));
         
-        query = String.format(query, 
+        query = String.format(query, mapInstanceKey,
+                contextParams.getSponsor().getRollupGroupCode(),
                 DateParser.prepareOracleWhenFragment(from), 
                 DateParser.prepareOracleWhenFragment(to),
                 contextParams.getSponsorKeysList(),
@@ -356,8 +410,8 @@ public class StoreLevelAnalysisLayerCreator {
         return query;
     }
     
-    private String getSingleQuery(String baseQuery, String value, String from, String to, String comparedFrom, String comparedTo, Integer minTransactions, Integer minSpend, Integer minUnit, String styleRendition) {
-        return getComparedQuery(baseQuery, value, from, to, comparedFrom, comparedTo, minTransactions, minSpend, minUnit, styleRendition, false, HotSpotQueries.QueryType.SINGLE);
+    private String getSingleQuery(String baseQuery,String mapInstanceKey, String value, String from, String to, String comparedFrom, String comparedTo, Integer minTransactions, Integer minSpend, Integer minUnit, String styleRendition) {
+        return getComparedQuery(baseQuery,mapInstanceKey, value, from, to, comparedFrom, comparedTo, minTransactions, minSpend, minUnit, styleRendition, false, HotSpotQueries.QueryType.SINGLE);
     }
 
     private String getMinValuesFragment(String from, String to, String comparedFrom, String comparedTo, Integer minTransactions, Integer minSpend, Integer minUnit, boolean isCollectorBased, HotSpotQueries.QueryType queryType) {

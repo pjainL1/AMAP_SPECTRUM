@@ -12,6 +12,7 @@ package com.lo.analysis;
 
 import com.korem.openlayers.kms.Layer;
 import com.mapinfo.mapj.FeatureLayer;
+import com.mapinfo.midev.service.table.v1.ViewTable;
 import com.spinn3r.log5j.Logger;
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,6 +23,9 @@ public abstract class SpectrumLayer extends com.mapinfo.midev.service.mapping.v1
     public abstract com.mapinfo.midev.service.mapping.v1.Layer getLayerConfiguration(String mapInstanceKey);
     
     public abstract String getSpecMapInstanceKey();
+    
+    public abstract String getSpecDynamicLayerClass();
 
+    public abstract ViewTable getSourceTable();
     
 }

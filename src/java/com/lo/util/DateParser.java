@@ -15,6 +15,7 @@ import java.util.Date;
 public class DateParser {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+    private static final SimpleDateFormat sdfSpec = new SimpleDateFormat("yyyy-MM-dd");
 
     public static java.sql.Date parse(String val) throws ParseException {
         return new java.sql.Date(sdf.parse(val).getTime());
@@ -27,8 +28,20 @@ public class DateParser {
     public static String prepareOracleWhenFragmentFromPickers(String value) {
         return String.format("to_date('%s','MM/DD/YYYY')", value);
     }
+    
+     public static String prepareSpecWhenFragment(String value) {
+        return String.format("StringToDate('%s','yyyy-mm-dd')", value);
+    }
+
+    public static String prepareSpecWhenFragmentFromPickers(String value) {
+        return String.format("StringToDate('%s','mm/dd/yyyy')", value);
+    }
 
     public static String prepareOracleWhenFragment(Date value) {
         return prepareOracleWhenFragment(sdf.format(value));
+    }
+    
+    public static String prepareSpecWhenFragment(Date value) {
+        return prepareSpecWhenFragment(sdfSpec.format(value));
     }
 }

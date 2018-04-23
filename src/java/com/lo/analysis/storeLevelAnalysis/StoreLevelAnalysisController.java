@@ -5,6 +5,7 @@ import com.lo.analysis.AnalysisControler;
 import com.lo.analysis.storeLevelAnalysis.StoreLevelAnalysisMethod.IParams;
 import com.lo.web.Apply;
 import com.spinn3r.log5j.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -30,7 +31,7 @@ public class StoreLevelAnalysisController implements AnalysisControler {
         listener.update(25);
         try {
             StoreLevelAnalysisLayerCreator factory = new StoreLevelAnalysisLayerCreator(params, contextParams);
-            id = factory.apply(listener);
+            id = factory.apply(listener,session);
         } catch (Exception e) {
             log.error("Error defining store level analysis.", e);
         }

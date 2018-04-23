@@ -5,7 +5,7 @@ package com.korem.openlayers.parameters;
  * @author jduchesne
  */
 public interface IPixelSelectionParameters extends IBaseParameters {
-    int[] getPixelSelectionBounds();
+    double[] getPixelSelectionBounds();
 
     String getLayerName();
 

@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -44,18 +45,18 @@ public interface IMapProvider extends Serializable {
 
     int setSelection(ILonLatSelectionParameters parameters) throws Exception;
 
-    int setSelection(IPixelSelectionParameters parameters, Boolean append) throws Exception;
+    String setSelection(IPixelSelectionParameters parameters, Boolean append, HttpServletRequest req) throws Exception;
 
     void removeSelection(IBaseParameters parameters) throws Exception;
 
-    Map<String, Collection<Map<String, Object>>> getInfo(IMousePositionParameters parameters, IFilter filter) throws Exception;
+    Map<String, Collection<Map<String, Object>>> getInfo(IMousePositionParameters parameters, IFilter filter, HttpServletRequest req) throws Exception;
 
     Collection<Feature> getSelection(IBaseParameters parameters) throws Exception;
 
     Collection<Map<String, Map<String, Object>>> getInfoWithinRegion(IInfoWithinRegion parameters,
             IInfoFilter filter) throws Exception;
 
-    void clearSelection(IBaseParameters parameters) throws Exception;
+    void clearSelection(IBaseParameters parameters,HttpSession session) throws Exception;
 
     void setZoomAndCenter(IPositionParameters parameters) throws Exception;
 
@@ -76,4 +77,8 @@ public interface IMapProvider extends Serializable {
     boolean isLabelOnly(String layerId) throws Exception;
 
     void setLabelVisibility(ILayerVisibilityParameters params) throws Exception;
+    
+    void removeSpecLayer(String layerType, HttpSession session) throws Exception;
+    
+    String getSelectionResult() throws Exception;
 }

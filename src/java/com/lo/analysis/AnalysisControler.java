@@ -4,7 +4,9 @@
  */
 package com.lo.analysis;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
 
 /**
  *

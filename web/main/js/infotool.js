@@ -91,6 +91,9 @@ am.InfoTool.prototype = korem.apply({
     },
     trigger: function(e) {
         var that = this;
+        var lonlat = this.map.getLonLatFromPixel(e.xy);
+        var lon = lonlat.lon;
+        var lat = lonlat.lat;
         if (this.activated) {
 
             if (this.isOn()) {
@@ -104,8 +107,8 @@ am.InfoTool.prototype = korem.apply({
                 type: 'post',
                 data: {
                     mapInstanceKey: this.mapInstanceKey,
-                    x: e.xy.x,
-                    y: e.xy.y,
+                    lon: lon,
+                    lat: lat,
                     from: that.formatDate(that.dates[0]),
                     to: that.formatDate(that.dates[1]),
                     minTransactions: that.minimumValues.minTransactions,

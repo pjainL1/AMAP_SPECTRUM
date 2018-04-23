@@ -324,5 +324,15 @@ public interface Queries {
     
     String spectradeareaLocationGetColor();
     
+    String specNWLocationGetColor();
+    
+    String specNWDeleteResults();
+    
+    String specNWTruncateResults();
+    
+    String specSLADeleteResults();
+    
+    String specSLATruncateResults();
+    
 
 }

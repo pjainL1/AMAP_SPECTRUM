@@ -190,8 +190,9 @@ am.SelectionTool.prototype = {
     getGeometry: function(vertices) {
         var geometry = '';
         for (var i = 0; i < vertices.length; ++i) {
-            var pixel = this.map.getViewPortPxFromLonLat(new OpenLayers.LonLat(vertices[i].x, vertices[i].y));
-            geometry += pixel.x.toFixed(0) + ',' + pixel.y.toFixed(0) + ',';
+            //var pixel = this.map.getViewPortPxFromLonLat(new OpenLayers.LonLat(vertices[i].x, vertices[i].y));
+            //geometry += pixel.x.toFixed(0) + ',' + pixel.y.toFixed(0) + ',';
+            geometry += vertices[i].x + ',' + vertices[i].y + ',';
         }
         return geometry;
     },

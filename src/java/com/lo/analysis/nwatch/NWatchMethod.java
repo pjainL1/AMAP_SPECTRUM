@@ -38,17 +38,17 @@ public class NWatchMethod implements IProgressAware {
     public void execute(ProgressListener listener, Object params) {
         IParams applyParams = (IParams) ((Object[]) params)[0];
         ContextParams cp = ContextParams.get((HttpSession) ((Object[]) params)[1]);
-        try {
-            String[] ids = WSClient.getMapService().getLayersIdByName(
-                    applyParams.mapInstanceKey(),
-                    Analysis.NEIBOURHOOD_WATCH.toString());
-            for (String id : ids) {
-                if (id != null && !"-1".equals(id) && !"".equals(id)) {
-                    WSClient.getMapService().removeLayer(applyParams.mapInstanceKey(), id);
-                }
-            }
-        } catch (RemoteException ex) {
-        }
+//        try {
+////            String[] ids = WSClient.getMapService().getLayersIdByName(
+////                    applyParams.mapInstanceKey(),
+////                    Analysis.NEIBOURHOOD_WATCH.toString());
+////            for (String id : ids) {
+////                if (id != null && !"-1".equals(id) && !"".equals(id)) {
+////                    WSClient.getMapService().removeLayer(applyParams.mapInstanceKey(), id);
+////                }
+////            }
+//        } catch (RemoteException ex) {
+//        }
         if (applyParams.nwatch() == null) {
             listener.update(100);
         } else {

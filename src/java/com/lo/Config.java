@@ -30,6 +30,7 @@ public class Config extends AbstractConfig {
     private Map<String, String> displayNames;
     private String amapBaseUrl;
     private String kmsBaseUrl;
+    private String specWorkspace;
     private String spectrumBaseUrl;
     private String spectrumUsername;
     private String spectrumPassword;
@@ -58,6 +59,7 @@ public class Config extends AbstractConfig {
                     .log(Level.WARNING, "amap/baseURL is not configured.");
             }
             kmsBaseUrl = (String) context.lookup("kms/url");
+            specWorkspace = (String) context.lookup("specWorkspace");
             spectrumBaseUrl = (String) context.lookup("spectrum/url");
             spectrumUsername = (String) context.lookup("spectrum/username");
             spectrumPassword = (String) context.lookup("spectrum/password");
@@ -119,6 +121,10 @@ public class Config extends AbstractConfig {
 
     public String getKmsUrl() {
         return kmsBaseUrl;
+    }
+    
+    public String getSpecWorkspace() {
+        return "AMAP_" + amap_env.toUpperCase() + "/" + specWorkspace;
     }
 
     public String getLegendUrl(String layerId, String mapInstanceKey) {

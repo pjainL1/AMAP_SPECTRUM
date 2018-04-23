@@ -132,7 +132,7 @@ public class ReportMethod implements IProgressAware  {
                 HotSpotFactory factory = (HotSpotFactory) paramAsArray[INDEX_FACTORY];
                 String baseHREF = (String) paramAsArray[INDEX_BASE_HREF];
 
-                PDFGenerator pGen = new PDFGenerator(factory, listener, session, params, baseHREF);
+                PDFGenerator pGen = new PDFGenerator(factory, listener,session, params, baseHREF);
                 pGen.run();
                 pdfBean = pGen.getPdf();
 

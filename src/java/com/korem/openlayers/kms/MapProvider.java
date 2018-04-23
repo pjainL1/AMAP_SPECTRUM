@@ -25,11 +25,25 @@ import com.lo.analysis.Analysis;
 import com.lo.analysis.SpectrumLayer;
 import com.lo.config.Confs;
 import com.lo.layer.LocationLayerUtils;
+import com.lo.layer.LocationSelectionLayer;
 import com.lo.util.WSClient;
 import com.lo.util.WSClientLone;
+import com.lo.web.FeaturePreference;
 import com.lo.web.ListTiles;
 import com.lo.web.SpectrumRenderMap;
 import com.lo.web.SpectrumRenderTile;
+import com.mapinfo.midev.service.feature.v1.SearchBySQLRequest;
+import com.mapinfo.midev.service.feature.v1.SearchBySQLResponse;
+import com.mapinfo.midev.service.feature.ws.v1.FeatureServiceInterface;
+import com.mapinfo.midev.service.featurecollection.v1.AttributeDefinition;
+import com.mapinfo.midev.service.featurecollection.v1.AttributeValue;
+import com.mapinfo.midev.service.featurecollection.v1.DecimalValue;
+import com.mapinfo.midev.service.featurecollection.v1.DoubleValue;
+import com.mapinfo.midev.service.featurecollection.v1.FeatureCollection;
+import com.mapinfo.midev.service.featurecollection.v1.FeatureCollectionMetadata;
+import com.mapinfo.midev.service.featurecollection.v1.FloatValue;
+import com.mapinfo.midev.service.featurecollection.v1.IntValue;
+import com.mapinfo.midev.service.featurecollection.v1.StringValue;
 import com.mapinfo.midev.service.mapping.v1.MapImage;
 import com.mapinfo.midev.service.namedresource.v1.ListNamedResourceResponse;
 import com.mapinfo.midev.service.namedresource.v1.NamedResource;
@@ -40,14 +54,18 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
@@ -75,7 +93,9 @@ public class MapProvider implements IMapProvider {
     private static final String XPATH_MAXY = "//coord[2]/Y/text()";
     private Set<String> labelOnlyLayersName;
     private Map<String, String> labelOnlyLayers;
-
+    private String selectionResult = null;
+    
+    
     public MapProvider() throws ParserConfigurationException {
         labelOnlyLayersName = new HashSet<String>();
         labelOnlyLayersName.add(Analysis.LOCATIONS.toString().toUpperCase());
@@ -89,32 +109,31 @@ public class MapProvider implements IMapProvider {
     }
 
     @Override
-    public byte[] getImage(String mapInstanceKey,IBoundsParameters boundsParams,HttpServletRequest request, String format, int width, int height) throws RemoteException, ServletException, IOException {
+    public byte[] getImage(String mapInstanceKey, IBoundsParameters boundsParams, HttpServletRequest request, String format, int width, int height) throws RemoteException, ServletException, IOException {
         //return WSClient.getMapService().getImage(mapInstanceKey, format, width, height);
-       // SpectrumRenderTile tile = new SpectrumRenderTile();
+        // SpectrumRenderTile tile = new SpectrumRenderTile();
         //return tile.createImageFromTiles();
         byte[] img = null;
         List<SpectrumLayer> analysisLayers = (List<SpectrumLayer>) request.getSession().getAttribute("SPEC_ANALYSIS_LAYERS");
-        
-        if(analysisLayers != null  && analysisLayers.size() > 0 )
-        {
-        SpectrumRenderMap specMap = SpectrumRenderMap.getInstance();
-        
+        //SpectrumLayer locationLayer = (SpectrumLayer) request.getSession().getAttribute("SPEC_LOCATION_LAYER");
+        //analysisLayers.add(locationLayer);
+        System.out.println("MAPPROVIDE GETIMAGE : NO OF ANALYSIS LAYERS = " + analysisLayers.size());
+        if (analysisLayers != null && analysisLayers.size() > 0) {
+            SpectrumRenderMap specMap = SpectrumRenderMap.getInstance();
+
             try {
-                img = specMap.SpecRenderMap(analysisLayers, mapInstanceKey,boundsParams,width,height);
+                img = specMap.SpecRenderMap(analysisLayers, mapInstanceKey, boundsParams, width, height);
             } catch (Exception ex) {
                 java.util.logging.Logger.getLogger(MapProvider.class.getName()).log(Level.SEVERE, null, ex);
             }
-        
+
+        } else {
+            img = getTransparentTile();
         }
-        else
-        {
-          img =   getTransparentTile();
-        }
-        
+
         return img;
     }
-    
+
     private byte[] getTransparentTile() {
         try {
             BufferedImage finalTile = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
@@ -136,9 +155,9 @@ public class MapProvider implements IMapProvider {
 
     @Override
     public void setBounds(IBoundsParameters parameters) throws RemoteException, SAXException, IOException, XPathExpressionException {
-       // WSClient.getMapService().setBounds(parameters.mapInstanceKey(),
-         //       parameters.xmin(), parameters.ymin(),
-           //     parameters.xmax(), parameters.ymax());
+        // WSClient.getMapService().setBounds(parameters.mapInstanceKey(),
+        //       parameters.xmin(), parameters.ymin(),
+        //     parameters.xmax(), parameters.ymax());
     }
 
     @Override
@@ -148,7 +167,7 @@ public class MapProvider implements IMapProvider {
         try {
             //image = getImage(
             //        parameters.mapInstanceKey(), parameters.format(),
-              //      parameters.width(), parameters.height());
+            //      parameters.width(), parameters.height());
         } catch (Exception e) {
             log.error(null, e);
         }
@@ -158,7 +177,6 @@ public class MapProvider implements IMapProvider {
             log.error(null, e);
         }
     }
-    
 
     @Override
     public void setDeviceBounds(IDeviceBoundsParameters parameters) throws RemoteException {
@@ -189,17 +207,17 @@ public class MapProvider implements IMapProvider {
 
     @Override
     public void init(IInitParameters parameters, HttpServletRequest request) throws Exception {
-        
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmssS");
         String timeStamp = dateFormat.format(new Date());
-        String mapInstanceKey =  request.getSession().getId() + timeStamp;
+        String mapInstanceKey = request.getSession().getId() + timeStamp;
         List<SpectrumLayer> analysisLayers = new ArrayList<SpectrumLayer>();
         Collection<Layer> layers = new ArrayList<Layer>();
-       
-        request.getSession().setAttribute("SPEC_LAYERS", layers);
-        
-        request.getSession().setAttribute("SPEC_ANALYSIS_LAYERS",analysisLayers);
+        // SpectrumLayer locationLayer = null ;
 
+        request.getSession().setAttribute("SPEC_LAYERS", layers);
+
+        request.getSession().setAttribute("SPEC_ANALYSIS_LAYERS", analysisLayers);
 
 //
         //String mapInstanceKey = WSClient.getMappingSessionService().createMapInstanceKey(parameters.workspaceKey()); 
@@ -209,7 +227,8 @@ public class MapProvider implements IMapProvider {
         //parameters.setSpecMapInstanceKey(specMapInstanceKey);
         log.debug("workspaceKey [" + parameters.workspaceKey() + "] mapInstanceKey: " + mapInstanceKey);
         //log.debug("Spectrum mapInstanceKey: " + specMapInstanceKey);
-        //(new LocationLayerUtils()).createGlobalLocationLayer(parameters);
+        (new LocationLayerUtils()).createGlobalLocationLayer(parameters, request);
+        //request.getSession().setAttribute("SPEC_LOCATION_LAYER",locationLayer);
     }
 
     @Override
@@ -218,8 +237,10 @@ public class MapProvider implements IMapProvider {
     }
 
     @Override
-    public void clearSelection(IBaseParameters parameters) throws RemoteException {
-        WSClient.getFeatureSetService().removeSelection(parameters.mapInstanceKey());
+    public void clearSelection(IBaseParameters parameters,HttpSession session) throws RemoteException {
+        //WSClient.getFeatureSetService().removeSelection(parameters.mapInstanceKey());
+        removeSpecLayer("LOCATIONSELECTIONLAYER",session);
+        
     }
 
     @Override
@@ -231,7 +252,7 @@ public class MapProvider implements IMapProvider {
     @Override
     public void setSelectionByAttributes(ISelectByAttributesParameters parameters) {
         try {
-            WSClientLone.getFeatureSetService().setSelections(parameters.mapInstanceKey(), 
+            WSClientLone.getFeatureSetService().setSelections(parameters.mapInstanceKey(),
                     parameters.getLayerName(), parameters.getAttributeColumns(),
                     parameters.getAttributeValues(), false);
         } catch (RemoteException ex) {
@@ -259,6 +280,7 @@ public class MapProvider implements IMapProvider {
                         false)) > 0) {
                     break;
                 }
+                double[] pixelList = parameters.getLonLatSelectionBounds();
             } catch (RemoteException e) {
                 log.info(null, e);
             }
@@ -267,47 +289,177 @@ public class MapProvider implements IMapProvider {
     }
 
     @Override
-    public int setSelection(IPixelSelectionParameters parameters, Boolean append) throws Exception {
+    public String setSelection(IPixelSelectionParameters parameters, Boolean append,HttpServletRequest req) throws Exception {
         int resultCount = 0;
-        try {
-//            String layerId = WSClient.getMapService().getLayersIdByName(parameters.mapInstanceKey(),
-//                    parameters.getLayerName())[0];
-            String layerId = "38";
-            WSClient.getFeatureSetService().setSelectionWithRegion(
-                    parameters.mapInstanceKey(),
-                    layerId,
-                    parameters.getPixelSelectionBounds(),
-                    append);
-        } catch (RemoteException e) {
-            log.info(null, e);
+//        try {
+////            String layerId = WSClient.getMapService().getLayersIdByName(parameters.mapInstanceKey(),
+////                    parameters.getLayerName())[0];
+//            String layerId = "38";
+//            WSClient.getFeatureSetService().setSelectionWithRegion(
+//                    parameters.mapInstanceKey(),
+//                    layerId,
+//                    parameters.getPixelSelectionBounds(),
+//                    append);
+//        } catch (RemoteException e) {
+//            log.info(null, e);
+//        }
+        
+        String xyTable = Confs.CONFIG.xyTableSPONSOR_LOCATION();
+
+
+        double[] pixelList = parameters.getPixelSelectionBounds();
+        String pixelCoords = Arrays.toString(pixelList).replace("[","").replace("]", "");
+        
+        FeatureServiceInterface featureService = FeaturePreference.getServiceInterface();
+        
+        SearchBySQLRequest request = createSearchBySQLRequest(pixelCoords);
+
+        SearchBySQLResponse response = featureService.searchBySQL(request);
+        FeatureCollection featureCollection = response.getFeatureCollection();
+
+        String idColumn = "SPONSOR_LOCATION_KEY";
+        String sponsorLocCode = "SPONSOR_LOCATION_CODE";
+        int columnIndex = getColumnIndex(featureCollection, idColumn);
+        int columnIndexLocCode = getColumnIndex(featureCollection, sponsorLocCode);
+        //AttributeDefinition columnDef = featureCollection.getFeatureCollectionMetadata().getAttributeDefinitionList().getAttributeDefinition().get(columnIndex);
+        //List<Object> featuresIds = new ArrayList<>();
+        String locationKeys = "0.0";
+        String result = "[[\"0.0\",\"0\"]";
+
+        List<com.mapinfo.midev.service.featurecollection.v1.Feature> allFeatures = featureCollection.getFeatureList().getFeature();
+        for (com.mapinfo.midev.service.featurecollection.v1.Feature feature : allFeatures) {
+            AttributeValue attr = feature.getAttributeValue().get(columnIndex);
+            AttributeValue attrLocCode = feature.getAttributeValue().get(columnIndexLocCode);
+            //locationKeys = locationKeys + ',' + ;
+//            if (attr instanceof StringValue) {
+//                featuresIds.add(((StringValue) attr).getValue());
+//            } else if (attr instanceof DecimalValue) {
+//                featuresIds.add(((DecimalValue) attr).getValue());
+//            } else if (attr instanceof DoubleValue) {
+                locationKeys = locationKeys + ',' + ((DoubleValue) attr).getValue().toString();
+                result = result + ",[" + "\"" + ((DoubleValue) attr).getValue().toString() + "\"" + ',' +  "\"" +  ((StringValue) attrLocCode).getValue().toString() + "\"]";
+//                featuresIds.add(((DoubleValue) attr).getValue());
+//            } else if (attr instanceof FloatValue) {
+//                featuresIds.add(((FloatValue) attr).getValue());
+//            } else if (attr instanceof IntValue) {
+//                featuresIds.add(((IntValue) attr).getValue());
+//            } else {
+//                throw new Exception(String.format("Got an attribute (%s) of unsupported type: %s", idColumn, attr.getClass().getName()));
+//            }
+
         }
-        return resultCount;
+       
+        result = result + "]";
+        System.out.println("SET SELECTION RESULT : " + result);
+        System.out.println("SET SELECTION LOCATIONKEYS : " + locationKeys);
+        
+        setSelectionResult(result);
+        
+        ResourceBundle rb = ResourceBundle.getBundle("com.lo.layer.location");
+        String query = String.format("select obj, sponsor_location_key, sponsor_location_code,customer_location_code, sponsor_location_name, sponsor_code, city, postal_code, 666.666 as value from \"/AMAP_DEV/MLCC/XYTable/SPONSOR_LOCATION\" where sponsor_code  in ('MLCC') and ( last_active >= StringToDate('03/14/2016','mm/dd/yyyy') and first_active <= StringToDate('03/17/2018','mm/dd/yyyy') ) and sponsor_location_key in (%s)"
+               ,locationKeys);
+        req.getSession().setAttribute("SELECTED_LOCATIONS", locationKeys);
+        LocationSelectionLayer locSelLayer = LocationSelectionLayer.getInstance(parameters.mapInstanceKey(),req);
+
+        locSelLayer.setQuery(query);
+
+        List<SpectrumLayer> analysisLayers = (List<SpectrumLayer>) req.getSession().getAttribute("SPEC_ANALYSIS_LAYERS");
+        analysisLayers.add(locSelLayer);
+        req.getSession().setAttribute("SPEC_ANALYSIS_LAYERS", analysisLayers);
+        
+
+        return result;
     }
 
-    @Override
-    public Map<String, Collection<Map<String, Object>>> getInfo(IMousePositionParameters parameters, IFilter filter) throws Exception {
-        SearchResult result = WSClient.getSearchService().searchAtPoint(
-                parameters.mapInstanceKey(),
-                parameters.x(),
-                parameters.y());
-        Map<String, Collection<Map<String, Object>>> infos = new LinkedHashMap<String, Collection<Map<String, Object>>>();
-        for (LayerResult layerResult : result.getLayers()) {
-            if (filter.isNeeded(layerResult)) {
-                Collection<Map<String, Object>> layer = new ArrayList<Map<String, Object>>(layerResult.getResults().length);
-                for (FeatureResult featureResult : layerResult.getResults()) {
-                    Map<String, Object> info = new LinkedHashMap<String, Object>();
-                    for (int i = 0; i < layerResult.getFeatureResultInfo().getColumnsInfo().length; ++i) {
-                        String column = layerResult.getFeatureResultInfo().getColumnsInfo()[i].getName();
-                        Object value = featureResult.getFeatureValues()[i].getValue();
-                        info.put(column, value);
-                    }
-                    layer.add(info);
-                }
-                infos.put(layerResult.getName(), layer);
+
+    private int getColumnIndex(FeatureCollection featureCollection, String colName) throws Exception {
+        FeatureCollectionMetadata metadata = featureCollection.getFeatureCollectionMetadata();
+        Iterator<AttributeDefinition> iterator = metadata.getAttributeDefinitionList().getAttributeDefinition().iterator();
+
+        int i = 0;
+        while (iterator.hasNext()) {
+            AttributeDefinition def = iterator.next();
+            if (colName.equals(def.getName())) {
+                return i;
+            }
+            i++;
+        }
+
+        throw new Exception(String.format("Column %s not found in feature results metadata.", colName));
+    }
+    
+    public void removeSpecLayer(String layerType,HttpSession session){
+        List<SpectrumLayer> analysisLayers = (List<SpectrumLayer>) session.getAttribute("SPEC_ANALYSIS_LAYERS");
+        ListIterator listIter = analysisLayers.listIterator();
+        System.out.println("NO OF ANALYSIS LAYERS BEFORE REMOVE = " + analysisLayers.size());
+        while(listIter.hasNext()){
+            SpectrumLayer layer = (SpectrumLayer) listIter.next();
+            if(layer.getSpecDynamicLayerClass().equals(layerType)){
+                listIter.remove();
             }
         }
-        WSClient.getMapService().setNumericCoordSys(parameters.mapInstanceKey(), Confs.STATIC_CONFIG.webCoordsysEpsg());
+        System.out.println("NO OF ANALYSIS LAYERS AFTER REMOVE = " + analysisLayers.size());
+        session.setAttribute("SPEC_ANALYSIS_LAYERS",analysisLayers);
+    }
+    
+    private SearchBySQLRequest createSearchBySQLRequest(String pixelCoords) {
+        SearchBySQLRequest request = new SearchBySQLRequest();
+        request.setId("SearchBySQL");
+        String query =  String.format("SELECT * FROM \"/AMAP_DEV/MLCC/XYTable/SPONSOR_LOCATION\" WHERE MI_Intersects(Obj, MI_Polygon('%s' , 'epsg:900913')) = TRUE", pixelCoords);
+        request.setSQL(query);
+        return request;
+    }
+    
+    
+    private void setSelectionResult(String result){
+        this.selectionResult = result;
+    }
+    
+    public String getSelectionResult(){
+        return selectionResult;
+    }
+    
+    @Override
+    public Map<String, Collection<Map<String, Object>>> getInfo(IMousePositionParameters parameters, IFilter filter,HttpServletRequest request) throws Exception {
+        //SearchResult result = WSClient.getSearchService().searchAtPoint(
+          //      parameters.mapInstanceKey(),
+            //    parameters.lon(),
+            //    parameters.lat());
+            
+        ArrayList<Layer> specLayers = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
+        List<SpectrumLayer> analysisLayers = (List<SpectrumLayer>) request.getSession().getAttribute("SPEC_ANALYSIS_LAYERS");
         
+        for(Layer specLayer : specLayers){
+            String table = specLayer.getSourceTable();
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        Map<String, Collection<Map<String, Object>>> infos = new LinkedHashMap<String, Collection<Map<String, Object>>>();
+//        for (LayerResult layerResult : result.getLayers()) {
+//            if (filter.isNeeded(layerResult)) {
+//                Collection<Map<String, Object>> layer = new ArrayList<Map<String, Object>>(layerResult.getResults().length);
+//                for (FeatureResult featureResult : layerResult.getResults()) {
+//                    Map<String, Object> info = new LinkedHashMap<String, Object>();
+//                    for (int i = 0; i < layerResult.getFeatureResultInfo().getColumnsInfo().length; ++i) {
+//                        String column = layerResult.getFeatureResultInfo().getColumnsInfo()[i].getName();
+//                        Object value = featureResult.getFeatureValues()[i].getValue();
+//                        info.put(column, value);
+//                    }
+//                    layer.add(info);
+//                }
+//                infos.put(layerResult.getName(), layer);
+//            }
+//        }
+        WSClient.getMapService().setNumericCoordSys(parameters.mapInstanceKey(), Confs.STATIC_CONFIG.webCoordsysEpsg());
+
         return infos;
     }
 
@@ -345,7 +497,7 @@ public class MapProvider implements IMapProvider {
 
     @Override
     public Collection<Layer> getLayers(IBaseParameters parameters, IFilter filter, HttpServletRequest request) throws Exception {
-         
+
 //        Document doc = XMLHelper.get().newDocument(WSClient.getMapService().getMapInfo(parameters.mapInstanceKey()));
 //        NodeList nodes = XMLHelper.get().getList(doc, "//LayerInterface");
 //        Collection<Layer> layers = new ArrayList<Layer>(nodes.getLength());
@@ -374,7 +526,6 @@ public class MapProvider implements IMapProvider {
 //                }
 //        }
 //        }
-        
         ListTiles tiledObj = ListTiles.getInstance();
         ListNamedResourceResponse tiles = tiledObj.getResp();
         //HashMap<NamedResource,Boolean> layerWithVisiblity =new HashMap<NamedResource,Boolean>();
@@ -383,18 +534,16 @@ public class MapProvider implements IMapProvider {
             //final int localI = ++i;
             Layer specLayer = new Layer(tile);
             layers.add(specLayer);
-           // layerWithVisiblity.put(tile, false);
-       }
+            // layerWithVisiblity.put(tile, false);
+        }
 //        
-          
-        
-        
+
         //HttpSession specSession = request.getSession();
         request.getSession().setAttribute("SPEC_LAYERS", layers);
         //List<SpectrumLayer>
         //specSession.setAttribute("SPEC_ANALYSIS_LAYERS", List<SpectrumLayer>);
         return layers;
-        
+
     }
 
     @Override
@@ -405,29 +554,27 @@ public class MapProvider implements IMapProvider {
     @Override
     public void setLabelVisibility(ILayerVisibilityParameters params) throws Exception {
         String layerID = WSClient.getMapService().getLayersIdByName(params.mapInstanceKey(), params.name())[0];
-        
+
         if (layerID != null && !layerID.equals("-1")) {
             WSClientLone.getLayerService().setLabelVisibility(params.mapInstanceKey(), layerID, params.visibility(), params.getLabelField());
         }
     }
 
     @Override
-    public void setLayerVisibility(ILayerVisibilityParameters params,HttpServletRequest request) throws Exception {
+    public void setLayerVisibility(ILayerVisibilityParameters params, HttpServletRequest request) throws Exception {
         //WSClient.getLayerService().setVisible(params.mapInstanceKey(), params.id(), params.visibility());
-       ArrayList<Layer> layerWithVisiblity = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
+        ArrayList<Layer> layerWithVisiblity = (ArrayList<Layer>) request.getSession().getAttribute("SPEC_LAYERS");
         String layer = params.name();
         Boolean visible = params.visibility();
         for (Layer tile : layerWithVisiblity) {
             String tileName = tile.getName();
-                if(tileName.equals(layer)){
-                    //layerWithVisiblity.put(tile,visible);
-                    tile.setVisibility(visible);
-                }
+            if (tileName.equals(layer)) {
+                //layerWithVisiblity.put(tile,visible);
+                tile.setVisibility(visible);
             }
-        
-        
-        
-        request.getSession().setAttribute("SPEC_LAYERS",layerWithVisiblity);
-        
+        }
+
+        request.getSession().setAttribute("SPEC_LAYERS", layerWithVisiblity);
+
     }
 }

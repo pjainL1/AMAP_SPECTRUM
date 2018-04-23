@@ -100,6 +100,7 @@ import java.util.Arrays;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -352,6 +353,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
     private boolean firstBatch = true;
     private double BATCH_ZOOM_MODIFIER;
     private HttpSession session;
+    //private HttpServletRequest request;
 
     /**
      * Create PDFGenerator object, then ready to be started and forgotten. It is

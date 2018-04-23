@@ -28,25 +28,28 @@ public class SetSelection extends GenericServlet<SetSelection.IParams> {
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
         IPixelSelectionParameters parameters = createParameters(params);
         parameters.setLayerName(Analysis.LOCATIONS.toString());
-        mapProvider.setSelection(parameters, params.append());
+        mapProvider.removeSpecLayer("LOCATIONSELECTIONLAYER",req.getSession());
+        String result = mapProvider.setSelection(parameters, params.append(),req);
         SelectionReplicator selectionUtils = new SelectionReplicator(ContextParams.get(req.getSession()));
-        String result = "[[\"182135.0\",\"0074\",\"0074\",\"PARK WEST\",\"MLCC\",\"WINNIPEG\",\"R3R2P9\",\"666.666\"],[\"734.0\",\"0008\",\"0008\",\"Portage & Ainslie\",\"MLCC\",\"WINNIPEG\",\"R3J0P1\",\"666.666\"],[\"1109.0\",\"0054\",\"0054\",\"Crestview Shop. Ctr\",\"MLCC\",\"WINNIPEG\",\"R3K2G7\",\"666.666\"],[\"862.0\",\"0026\",\"0026\",\"Charleswood\",\"MLCC\",\"WINNIPEG\",\"R3R3C2\",\"666.666\"]]" ;
-        //return selectionUtils.createResult(mapProvider, parameters);
+        //String result = "[[\"182135.0\",\"0074\",\"0074\",\"PARK WEST\",\"MLCC\",\"WINNIPEG\",\"R3R2P9\",\"666.666\"],[\"734.0\",\"0008\",\"0008\",\"Portage & Ainslie\",\"MLCC\",\"WINNIPEG\",\"R3J0P1\",\"666.666\"],[\"1109.0\",\"0054\",\"0054\",\"Crestview Shop. Ctr\",\"MLCC\",\"WINNIPEG\",\"R3K2G7\",\"666.666\"],[\"862.0\",\"0026\",\"0026\",\"Charleswood\",\"MLCC\",\"WINNIPEG\",\"R3R3C2\",\"666.666\"]]" ;
+        
+        //Change temp to result when making changes 
+       // String result = selectionUtils.createResult(mapProvider, parameters);
         return result;
     }
 
     private IPixelSelectionParameters createParameters(final IParams params) {
         String[] boundsStr = params.geometry().split(",");
-        final int[] bounds = new int[boundsStr.length];
+        final double[] bounds = new double[boundsStr.length];
         for (int i = 0; i < bounds.length; ++i) {
-            bounds[i] = Integer.parseInt(boundsStr[i]);
+            bounds[i] = Double.parseDouble(boundsStr[i]);
         }
         return new IPixelSelectionParameters() {
 
             String layerName;
 
             @Override
-            public int[] getPixelSelectionBounds() {
+            public double[] getPixelSelectionBounds() {
                 return bounds;
             }
 

@@ -131,6 +131,11 @@ public interface Config {
     String spectrumPort();
     
     String namedTableLIM_TA_PLOYGON();
+    String namedTableLIM_NW_RESULTS();
+    String namedTableLIM_SLA_RESULTS();
+    String namedTableCN06DA();
+    String xyTableSPONSOR_LOCATION();
+    
     
 
 }

@@ -22,7 +22,7 @@ public class ReSetSelection extends GenericServlet<IBaseParameters> {
     protected String getJSON(HttpServletRequest req, IBaseParameters params) throws Exception {
         SelectionReplicator selectionUtils = new SelectionReplicator(ContextParams.get(req.getSession()));
         IMapProvider mapProvider = GetOpenLayers.getMapProvider();
-        selectionUtils.reapply(mapProvider, params);
-        return selectionUtils.createResult(mapProvider, params);
+        selectionUtils.reapply(mapProvider, params,req.getSession());
+        return selectionUtils.createResult(mapProvider, params, req);
     }
 }
