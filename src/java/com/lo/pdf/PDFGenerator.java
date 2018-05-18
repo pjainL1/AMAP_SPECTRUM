@@ -10,6 +10,7 @@ import com.korem.heatmaps.HeatMapRules;
 import com.korem.heatmaps.Legend;
 import com.korem.heatmaps.LegendItem;
 import com.korem.heatmaps.Properties;
+import com.korem.heatmaps.google.GmapsUtils;
 import com.korem.map.ws.client.MapService;
 import com.korem.openlayers.kms.MapProvider;
 import com.korem.spectrum.DriveTimePolygon;
@@ -38,6 +39,7 @@ import com.lo.pdf.data.SummaryReportWriter;
 import com.lo.pdf.data.SummaryReportWriter.ReportType;
 import com.lo.util.DateType;
 import com.lo.util.Formatter;
+import com.lo.util.UrlSigner;
 import com.lo.util.WSClient;
 import com.lo.util.WSClientLone;
 import com.lo.util.WSClientUtil;
@@ -93,10 +95,21 @@ import com.lowagie.text.Image;
 import com.mapinfo.coordsys.CoordSys;
 import com.mapinfo.coordsys.CoordTransform;
 import com.mapinfo.util.DoublePoint;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.logging.Level;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
@@ -106,6 +119,12 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.util.JSONTokener;
 import org.apache.commons.lang.StringUtils;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.operation.TransformException;
 
 /**
  * @author ydumais
@@ -115,7 +134,8 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
     public static final String PLACEMARK_TEMP_LAYER_NAME = "placemark";
     public static final String ZOOM_UNIT = "m";
     private static final int HOTSPOT_LEGEND_MIN_WIDTH = 260;
-
+    private String gMapPremierKey = Config.getInstance().getGoogleKey();
+    private String gMapPremierSignature = Config.getInstance().getGoogleSignature();
     private int mapImageWidth;
     private int mapImageHeight;
     private SessionlessLanguageManager lm;
@@ -138,7 +158,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
     private static class CancelException extends Exception {
     }
 
-    private byte[] getImage(MapService mapService) throws RemoteException {
+    private byte[] getImage(MapService mapService, int zoomLevel,Geometry geom,int mapImageWidth,int mapImageHeight) throws RemoteException, IOException {
 
         String[] features;
         if (reportParams.googleType().equals("grey") || reportParams.googleType().equals("night")) {
@@ -146,20 +166,74 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
         } else {
             features = new String[]{};
         }
-        byte[] bytes = WSClientLone.getMapService().getImage(
-                mapInstanceKey,
-                "image/png",
-                mapImageWidth,
-                mapImageHeight,
-                reportParams.googleType(),
-                "true",
-                OPACITY,
-                Config.getInstance().getGoogleKey(),
-                Config.getInstance().getGoogleSignature(),
-                features
-        );
+//        byte[] bytes = WSClientLone.getMapService().getImage(
+//                mapInstanceKey,
+//                "image/png",
+//                mapImageWidth,
+//                mapImageHeight,
+//                reportParams.googleType(),
+//                "true",
+//                OPACITY,
+//                Config.getInstance().getGoogleKey(),
+//                Config.getInstance().getGoogleSignature(),
+//                features
+//        );
 
-        return bytes;
+        String url = "http://maps.googleapis.com/maps/api/staticmap?&region=ca&language=" + lm.getLanguageName() + "&client=" + gMapPremierKey + "&center=" + geom.getInteriorPoint().getX() + "," + geom.getInteriorPoint().getY() + "&zoom=" + zoomLevel + "&size=" + (int)mapImageWidth + "x" + (int) mapImageHeight;
+
+//        if (reportParams.googleType().equals("satellite")) {
+//            if (mapWrapper.getAttribute("showLabels") != null) {
+//                url += "&maptype=hybrid";
+//            } else {
+//                url += "&maptype=satellite";
+//            }
+//        } else if (reportParams.googleType().equals("terrain")) {
+//            url += "&maptype=terrain";
+//        }
+        for (String gmapStyle : features) {
+            url += "&style=" + gmapStyle;
+        }
+        log.debug("Calling google static maps api with url: " + url);
+        try {
+            try {
+                url = new UrlSigner(gMapPremierSignature).signRequest(url);
+            } catch (NoSuchAlgorithmException ex) {
+                java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidKeyException ex) {
+                java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (UnsupportedEncodingException ex) {
+                java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (URISyntaxException ex) {
+                java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (MalformedURLException ex) {
+                java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        log.debug("Calling signed url: " + url);
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(new URL(url));
+        } catch (MalformedURLException ex) {
+            java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //graphics.drawImage(image, 0, 0, null);
+
+        byte[] imageInByte = null;
+        try {
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            baos.flush();
+            imageInByte = baos.toByteArray();
+            baos.close();
+
+        } catch (IOException e) {
+            log.error(e);
+        }
+
+        return imageInByte;
     }
 
     public String[] getMapStyleFeatures(String style) {
@@ -408,8 +482,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
 
             document.open();
 
-            duplicateMapSession();
-
+            //duplicateMapSession();
             insertTitlePage();
             updateListener(PROGRESS_TITLE);
 
@@ -581,15 +654,14 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
             // loyalty one logo
 // LOCAL CHANGE DO NOT CHANGE WITH KOREM CHANGES
             /**
-             * TODO make it better (for unknown reason amap cannot load the image) 
-             * the solution is to replace the alias by localhost 
-             * Quickfix for logo download problem
+             * TODO make it better (for unknown reason amap cannot load the
+             * image) the solution is to replace the alias by localhost Quickfix
+             * for logo download problem
              */
-            String urlPref = this.baseHREF.substring(0,this.baseHREF.indexOf("/analytics/"));
-            this.baseHREF = this.baseHREF.replace(urlPref,"http://localhost:8080");
-            
-// LOCAL CHANGE DO NOT CHANGE WITH KOREM CHANGES
+            String urlPref = this.baseHREF.substring(0, this.baseHREF.indexOf("/analytics/"));
+            this.baseHREF = this.baseHREF.replace(urlPref, "http://localhost:8080");
 
+// LOCAL CHANGE DO NOT CHANGE WITH KOREM CHANGES
             URL url = new URL(this.baseHREF + LOGO_RELATIVE_PATH);
             log.debug(String.format("Downloading report header image from %s", url));
             java.net.URLConnection connection = url.openConnection();
@@ -677,7 +749,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
                 p.setAlignment(Element.ALIGN_LEFT);
                 document.add(p);
             }
-            if (null != reportParams.minTransactions()){
+            if (null != reportParams.minTransactions()) {
                 StringBuilder sbuilder = new StringBuilder();
                 sbuilder.append(HYPHEN).append(SPACE);
                 sbuilder.append(conf.getString("pdf.title.analysis.minTransactions"));
@@ -686,7 +758,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
                 p.setAlignment(Element.ALIGN_LEFT);
                 document.add(p);
             }
-            if (null != reportParams.minSpend()){
+            if (null != reportParams.minSpend()) {
                 Formatter formatter = new Formatter();
                 StringBuilder sbuilder = new StringBuilder();
                 sbuilder.append(HYPHEN).append(SPACE);
@@ -696,7 +768,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
                 p.setAlignment(Element.ALIGN_LEFT);
                 document.add(p);
             }
-            if (null != reportParams.minUnit()){
+            if (null != reportParams.minUnit()) {
                 StringBuilder sbuilder = new StringBuilder();
                 sbuilder.append(HYPHEN).append(SPACE);
                 sbuilder.append(conf.getString("pdf.title.analysis.minUnit"));
@@ -710,7 +782,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
                 StringBuilder sbuilder = new StringBuilder();
                 sbuilder.append(HYPHEN).append(SPACE);
                 sbuilder.append(conf.getString("pdf.title.store.level.analysis"));
-                
+
                 String value = reportParams.slaTransactionValue();
                 if (COMPARISON.toUpperCase().equals(reportParams.dateType().toUpperCase())) {
                     value += SPACE + StringUtils.capitalize(reportParams.dateType());
@@ -723,16 +795,16 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
 
             if (!"".equals(reportParams.hotspot())) {
                 StringBuilder sb = new StringBuilder();
-                sb.append(HYPHEN).append(SPACE).append(conf.getString("pdf.title.hotspot."+reportParams.dateType()));
-                if(DateType.valueOf(reportParams.dateType())==DateType.comparison){
-                    sb.append(conf.getString("pdf.title.hotspot.comparison."+reportParams.hotspotComparisonType()));
+                sb.append(HYPHEN).append(SPACE).append(conf.getString("pdf.title.hotspot." + reportParams.dateType()));
+                if (DateType.valueOf(reportParams.dateType()) == DateType.comparison) {
+                    sb.append(conf.getString("pdf.title.hotspot.comparison." + reportParams.hotspotComparisonType()));
                 }
                 sb.append(SPACE).append(conf.getString("pdf.title.hotspot.for")).append(SPACE);
                 if ("sponsor".equals(reportParams.hotspot())) {
                     sb.append(contextParams.getSponsorCodesList()).append(SPACE);
                 }
-                sb.append(conf.getString("pdf.title.hotspot."+reportParams.hotspot())).append(SPACE);
-                sb.append(conf.getString("pdf.title.hotspot."+reportParams.dateType()+"."+reportParams.dataType()));
+                sb.append(conf.getString("pdf.title.hotspot." + reportParams.hotspot())).append(SPACE);
+                sb.append(conf.getString("pdf.title.hotspot." + reportParams.dateType() + "." + reportParams.dataType()));
                 Paragraph hotspot = new Paragraph(PARAGRAPH_LEADING, sb.toString(), fontSubtitleData);
                 hotspot.setAlignment(Element.ALIGN_LEFT);
                 document.add(hotspot);
@@ -784,8 +856,8 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
             timeframe.setSpacingBefore(SPACING_SECOND);
             title.setAlignment(Element.ALIGN_LEFT);
             String timeframeTxt = reportParams.from() + SPACE + TO + SPACE + reportParams.to();
-            if(DateType.valueOf(reportParams.dateType())==DateType.comparison){
-                timeframeTxt += SPACE+conf.getString("pdf.title.timeframe.versus")+SPACE+reportParams.compareFrom() + SPACE + TO + SPACE + reportParams.compareTo();
+            if (DateType.valueOf(reportParams.dateType()) == DateType.comparison) {
+                timeframeTxt += SPACE + conf.getString("pdf.title.timeframe.versus") + SPACE + reportParams.compareFrom() + SPACE + TO + SPACE + reportParams.compareTo();
             }
             timeframe.add(new Chunk(timeframeTxt, fontSubtitleData));
             document.add(timeframe);
@@ -884,6 +956,40 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
         Graphics2D g2d = null;
         Legend legend = null;
 
+        System.out.println("bImage H and W = " + bImage.getHeight() + bImage.getWidth());
+        
+        ///////////Change Coordinate System/////////////
+        PrecisionModel model = new PrecisionModel(100000);
+        GeometryFactory factory1 = new GeometryFactory(model, 3857);
+        Point pointGeometry = factory1.createPoint(new Coordinate(Double.parseDouble(reportParams.centerX()), Double.parseDouble(reportParams.centerY())));
+        Point pointMin = factory1.createPoint(new Coordinate(reportParams.ymin(), reportParams.xmin()));
+        Point pointMax = factory1.createPoint(new Coordinate(reportParams.ymax(), reportParams.xmax()));
+        Geometry geom = null;
+        Geometry geomMin = null;
+        Geometry geomMax = null;
+        CoordinateReferenceSystem sourceCRS;
+        try {
+            sourceCRS = CRS.decode("EPSG:3857");
+
+            CoordinateReferenceSystem targetCRS = CRS.decode("EPSG:4326");
+            MathTransform transform = CRS.findMathTransform(sourceCRS, targetCRS);
+            geom = JTS.transform(pointGeometry, transform);
+            geomMin = JTS.transform(pointMin, transform);
+            geomMax = JTS.transform(pointMax, transform);
+        } catch (FactoryException | TransformException ex) {
+            java.util.logging.Logger.getLogger(PDFGenerator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        ///////////Change Coordinate System/////////////
+        double centerTransformedX = geom.getInteriorPoint().getX();
+        double centerTransformedY = geom.getInteriorPoint().getY();
+        double minTransformedY = geomMin.getInteriorPoint().getY();
+        double minTransformedX = geomMin.getInteriorPoint().getX();
+        double maxTransformedY = geomMax.getInteriorPoint().getY();
+        double maxTransformedX = geomMax.getInteriorPoint().getX();
+        String beforeTransform = "Before Transform = " + reportParams.centerX() + "," + reportParams.centerY();
+        System.out.println(beforeTransform);
+        System.out.println("Transformed Geom = " + centerTransformedX + " , " + centerTransformedY);
+//        
         try {
             g2d = bImage.createGraphics();
 
@@ -898,12 +1004,17 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
 
             mapImageWidth = (int) ((imageWidth * IMAGE_DPI_RATIO - MAP_LEGEND_PADDING - legendWidth));
             mapImageHeight = (int) (imageHeight * IMAGE_DPI_RATIO);
-
+            int zoomLevel = 20;
             if (!fixedImage) {
-                mapService.setDeviceBounds(mapInstanceKey, mapImageWidth, mapImageHeight);
-                double adjustmentFactor = getAdjustementFactor();
-                double previousZoom = mapService.getZoom(mapInstanceKey, ZOOM_UNIT);
-                mapService.setZoom(mapInstanceKey, previousZoom / adjustmentFactor, ZOOM_UNIT);
+                //mapService.setDeviceBounds(mapInstanceKey, mapImageWidth, mapImageHeight);
+                //double adjustmentFactor = getAdjustementFactor();
+
+                //xmin = new PointXY(reportParams.x)
+                double[] boundList = new double[]{reportParams.xmax(), reportParams.ymax(), reportParams.xmin(), reportParams.ymin()};
+                //double[] boundList = new double[]{maxTransformedX, maxTransformedY, minTransformedX, minTransformedY};
+                zoomLevel = GmapsUtils.getClosestZoom(reportParams.width(), reportParams.height(), boundList, fixedImage);
+                // double previousZoom = mapService.getZoom(mapInstanceKey, ZOOM_UNIT);
+                //mapService.setZoom(mapInstanceKey, previousZoom / adjustmentFactor, ZOOM_UNIT);
                 fixedImage = true;
             }
 
@@ -918,19 +1029,20 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
             byte[] bytes = null;
             try {
                 long start = System.currentTimeMillis();
-                bytes = getImage(mapService);
+                bytes = getImage(mapService, zoomLevel,geom,mapImageWidth,mapImageHeight);
+
                 log.info(String.format("It took %sms to retrieve image from KMS.", System.currentTimeMillis() - start));
 
             } catch (RemoteException ex1) {
                 log.warn("First attempt to create map image failed, sometimes google api does not respond, retrying in 1s.");
                 try {
                     Thread.sleep(1000);
-                    bytes = getImage(mapService);
+                    bytes = getImage(mapService, zoomLevel,geom,mapImageWidth,mapImageHeight);
                 } catch (RemoteException ex2) {
                     log.warn("Second attempt to create map image failed, final attempt in 2s.");
                     Thread.sleep(2000);
                     try {
-                        bytes = getImage(mapService);
+                        bytes = getImage(mapService, zoomLevel,geom,mapImageWidth,mapImageHeight);
                     } catch (RemoteException ex3) {
                         log.error("Can't draw image with google background, trying without.", ex3);
                         bytes = mapService.getImage(mapInstanceKey, "image/png", mapImageWidth, mapImageHeight);
@@ -938,12 +1050,18 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
                 }
             }
 
-            double[] pdfBounds = WSClientUtil.getBounds(mapInstanceKey, SRS);
+            double pdfXmax = centerTransformedX + (GmapsUtils.getMeterPerPixel() * reportParams.width() / 2);
+            double pdfYmax = centerTransformedY + (GmapsUtils.getMeterPerPixel() * reportParams.height() / 2);
+            double pdfXmin = centerTransformedX - (GmapsUtils.getMeterPerPixel() * reportParams.width() / 2);
+            double pdfYmin = centerTransformedY - (GmapsUtils.getMeterPerPixel() * reportParams.height() / 2);
 
+            //double[] pdfBounds = WSClientUtil.getBounds(mapInstanceKey, SRS);
+            double[] pdfBounds = new double[]{pdfXmin, pdfYmin, pdfXmax, pdfYmax};
             //heat map if heat map on the map
             BufferedImage hmImage = null;
             if (!"".equals(reportParams.hotspot()) && this.hotSpotChecked()) {
-                int zoom = getGoogleZoom(mapService, mapInstanceKey, mapImageWidth);
+                //int zoom = getGoogleZoom(mapService, mapInstanceKey, mapImageWidth);
+                int zoom = zoomLevel;
                 HeatMapRule rule = rules.getRule(zoom);
 
                 DensityHeatMap heatMap = factory.create(mapImageWidth, mapImageHeight, ALPHA,
@@ -1609,7 +1727,7 @@ public class PDFGenerator extends PdfPageEventHelper implements Runnable {
 
     private void duplicateMapSessionWithTradeArea(String[] excludedLayers) throws RemoteException {
         mapInstanceKey = WSClientLone.getMappingSessionService().duplicateMapSession(reportParams.mapInstanceKey(), excludedLayers);
-       // MapProvider.initWorkspaceProperties(mapInstanceKey);
+        // MapProvider.initWorkspaceProperties(mapInstanceKey);
     }
 
     private void duplicateHotSpotFactory() {
